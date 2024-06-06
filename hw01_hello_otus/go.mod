@@ -1,4 +1,4 @@
-module github.com/milov52/hw01_hello_otus/hw01_hello_otus
+module github.com/milov52/otus-hw/hw01_hello_otus
 
 go 1.22
 
