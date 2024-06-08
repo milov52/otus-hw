@@ -8,25 +8,26 @@ import (
 
 var ErrInvalidString = errors.New("invalid string")
 
-func isDigit(ch byte) bool {
+func isDigit(ch rune) bool {
 	_, err := strconv.Atoi(string(ch))
 	return err == nil
 }
 
 func Unpack(s string) (string, error) {
+	runeArr := []rune(s)
 	if s == "" {
 		return s, nil
 	}
-	if isDigit(s[0]) {
+	if isDigit(runeArr[0]) {
 		return "", ErrInvalidString
 	}
 
 	var sb strings.Builder
 	escape := false // Флаг для обработки символа '\'
 
-	for i := range s {
+	for i := range runeArr {
 		if escape {
-			sb.WriteByte(s[i])
+			sb.WriteRune(runeArr[i])
 			escape = false
 			continue
 		}
@@ -35,12 +36,12 @@ func Unpack(s string) (string, error) {
 			continue
 		}
 
-		if isDigit(s[i]) && i+1 < len(s) && isDigit(s[i+1]) {
+		if isDigit(runeArr[i]) && i+1 < len(runeArr) && isDigit(runeArr[i+1]) {
 			return "", ErrInvalidString
 		}
 
-		if isDigit(s[i]) {
-			n, err := strconv.Atoi(string(s[i]))
+		if isDigit(runeArr[i]) {
+			n, err := strconv.Atoi(string(runeArr[i]))
 			if err != nil {
 				return "", err
 			}
@@ -49,10 +50,10 @@ func Unpack(s string) (string, error) {
 				sb.Reset()
 				sb.WriteString(tmp[:len(tmp)-1])
 			} else {
-				sb.WriteString(strings.Repeat(string(s[i-1]), n-1))
+				sb.WriteString(strings.Repeat(string(runeArr[i-1]), n-1))
 			}
 		} else {
-			sb.WriteByte(s[i])
+			sb.WriteRune(runeArr[i])
 		}
 	}
 	return sb.String(), nil
