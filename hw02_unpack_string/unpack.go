@@ -35,11 +35,11 @@ func Unpack(s string) (string, error) {
 			continue
 		}
 
-		if isDigit(s[i]) {
-			if i+1 < len(s) && isDigit(s[i+1]) {
-				return "", ErrInvalidString
-			}
+		if isDigit(s[i]) && i+1 < len(s) && isDigit(s[i+1]) {
+			return "", ErrInvalidString
+		}
 
+		if isDigit(s[i]) {
 			n, err := strconv.Atoi(string(s[i]))
 			if err != nil {
 				return "", err
