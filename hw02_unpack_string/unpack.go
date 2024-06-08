@@ -32,6 +32,9 @@ func Unpack(s string) (string, error) {
 			continue
 		}
 		if s[i] == '\\' {
+			if i == len(runeArr)-1 {
+				return "", ErrInvalidString
+			}
 			escape = true
 			continue
 		}
