@@ -26,28 +26,28 @@ func Unpack(s string) (string, error) {
 	var sb strings.Builder
 	escape := false // Флаг для обработки символа '\'
 
-	for i := range runeArr {
+	for i, ch := range runeArr {
 		if escape {
-			if isDigit(runeArr[i]) || runeArr[i] == '\\' {
-				sb.WriteRune(runeArr[i])
+			if isDigit(ch) || ch == '\\' {
+				sb.WriteRune(ch)
 			} else {
 				return "", ErrInvalidString
 			}
 			escape = false
 			continue
 		}
-		if runeArr[i] == '\\' {
+		if ch == '\\' {
 			escape = true
 			continue
 		}
 
 		// Ошибка если 2 подряд числа
-		if isDigit(runeArr[i]) && i+1 < len(runeArr) && isDigit(runeArr[i+1]) {
+		if isDigit(ch) && i+1 < len(runeArr) && isDigit(runeArr[i+1]) {
 			return "", ErrInvalidString
 		}
 
-		if isDigit(runeArr[i]) {
-			n, err := strconv.Atoi(string(runeArr[i]))
+		if isDigit(ch) {
+			n, err := strconv.Atoi(string(ch))
 			if err != nil {
 				return "", err
 			}
@@ -59,7 +59,7 @@ func Unpack(s string) (string, error) {
 				sb.WriteString(strings.Repeat(string(runeArr[i-1]), n-1))
 			}
 		} else {
-			sb.WriteRune(runeArr[i])
+			sb.WriteRune(ch)
 		}
 	}
 
