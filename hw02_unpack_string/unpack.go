@@ -49,9 +49,9 @@ func Unpack(s string) (string, error) {
 				return "", err
 			}
 			if n == 0 {
-				tmp := sb.String()
+				tmpArr := []rune(sb.String())
 				sb.Reset()
-				sb.WriteString(tmp[:len(tmp)-1])
+				sb.WriteString(string(tmpArr[:len(tmpArr)-1]))
 			} else {
 				sb.WriteString(strings.Repeat(string(runeArr[i-1]), n-1))
 			}
