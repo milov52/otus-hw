@@ -18,7 +18,8 @@ func Unpack(s string) (string, error) {
 	if s == "" {
 		return s, nil
 	}
-	if isDigit(runeArr[0]) {
+	// Ошибка если 1 число или последнее \
+	if isDigit(runeArr[0]) || runeArr[len(runeArr)-1] == '\\' {
 		return "", ErrInvalidString
 	}
 
@@ -27,18 +28,20 @@ func Unpack(s string) (string, error) {
 
 	for i := range runeArr {
 		if escape {
-			sb.WriteRune(runeArr[i])
+			if isDigit(runeArr[i]) || runeArr[i] == '\\' {
+				sb.WriteRune(runeArr[i])
+			} else {
+				return "", ErrInvalidString
+			}
 			escape = false
 			continue
 		}
-		if s[i] == '\\' {
-			if i == len(runeArr)-1 {
-				return "", ErrInvalidString
-			}
+		if runeArr[i] == '\\' {
 			escape = true
 			continue
 		}
 
+		// Ошибка если 2 подряд числа
 		if isDigit(runeArr[i]) && i+1 < len(runeArr) && isDigit(runeArr[i+1]) {
 			return "", ErrInvalidString
 		}
