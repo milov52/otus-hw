@@ -13,13 +13,17 @@ func isDigit(ch rune) bool {
 	return err == nil
 }
 
+func isSymbol(ch rune) bool {
+	return !isDigit(ch) && ch != '\\'
+}
+
 func Unpack(s string) (string, error) {
 	runeArr := []rune(s)
 	if s == "" {
 		return s, nil
 	}
 	// Ошибка если 1 число или последнее \
-	if isDigit(runeArr[0]) || (runeArr[len(runeArr)-1] == '\\' && runeArr[len(runeArr)-2] != '\\') {
+	if isDigit(runeArr[0]) {
 		return "", ErrInvalidString
 	}
 
@@ -27,23 +31,24 @@ func Unpack(s string) (string, error) {
 	escape := false // Флаг для обработки символа '\'
 
 	for i, ch := range runeArr {
+		// Ошибка - экранирование символа
+		if ch == '\\' && i+1 < len(runeArr) && isSymbol(runeArr[i+1]) {
+			return "", ErrInvalidString
+		}
+
+		// Ошибка если 2 подряд числа
+		if isDigit(ch) && i+1 < len(runeArr) && isDigit(runeArr[i+1]) && !escape {
+			return "", ErrInvalidString
+		}
+
 		if escape {
-			if isDigit(ch) || ch == '\\' {
-				sb.WriteRune(ch)
-			} else {
-				return "", ErrInvalidString
-			}
+			sb.WriteRune(ch)
 			escape = false
 			continue
 		}
 		if ch == '\\' {
 			escape = true
 			continue
-		}
-
-		// Ошибка если 2 подряд числа
-		if isDigit(ch) && i+1 < len(runeArr) && isDigit(runeArr[i+1]) {
-			return "", ErrInvalidString
 		}
 
 		if isDigit(ch) {
@@ -62,6 +67,8 @@ func Unpack(s string) (string, error) {
 			sb.WriteRune(ch)
 		}
 	}
-
+	if escape {
+		return "", ErrInvalidString
+	}
 	return sb.String(), nil
 }
