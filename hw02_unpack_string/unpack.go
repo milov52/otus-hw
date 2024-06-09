@@ -18,49 +18,56 @@ func Unpack(s string) (string, error) {
 	if s == "" {
 		return s, nil
 	}
-	// Ошибка если 1 число или последнее \
-	if isDigit(runeArr[0]) || runeArr[len(runeArr)-1] == '\\' {
+
+	if isDigit(runeArr[0]) || (runeArr[len(runeArr)-1] == '\\' && runeArr[len(runeArr)-2] != '\\') {
 		return "", ErrInvalidString
 	}
 
 	var sb strings.Builder
 	escape := false // Флаг для обработки символа '\'
-
-	for i := range runeArr {
+	for i, ch := range runeArr {
 		if escape {
-			if isDigit(runeArr[i]) || runeArr[i] == '\\' {
-				sb.WriteRune(runeArr[i])
+			if isDigit(ch) || ch == '\\' {
+				sb.WriteRune(ch)
 			} else {
 				return "", ErrInvalidString
 			}
 			escape = false
 			continue
 		}
-		if runeArr[i] == '\\' {
+
+		if ch == '\\' {
 			escape = true
 			continue
 		}
 
-		// Ошибка если 2 подряд числа
-		if isDigit(runeArr[i]) && i+1 < len(runeArr) && isDigit(runeArr[i+1]) {
-			return "", ErrInvalidString
-		}
+		if isDigit(ch) {
+			if i == 0 || (i < len(runeArr)-1 && isDigit(runeArr[i+1])) {
+				return "", ErrInvalidString
+			}
 
-		if isDigit(runeArr[i]) {
-			n, err := strconv.Atoi(string(runeArr[i]))
+			count, err := strconv.Atoi(string(ch))
 			if err != nil {
 				return "", err
 			}
-			if n == 0 {
-				tmpArr := []rune(sb.String())
-				sb.Reset()
-				sb.WriteString(string(tmpArr[:len(tmpArr)-1]))
+
+			if count == 0 {
+				if sb.Len() > 0 {
+					tmpArr := []rune(sb.String())
+					sb.Reset()
+					sb.WriteString(string(tmpArr[:len(tmpArr)-1]))
+				}
 			} else {
-				sb.WriteString(strings.Repeat(string(runeArr[i-1]), n-1))
+				sb.WriteString(strings.Repeat(string(runeArr[i-1]), count-1))
 			}
 		} else {
-			sb.WriteRune(runeArr[i])
+			sb.WriteRune(ch)
 		}
 	}
+
+	if escape {
+		return "", ErrInvalidString
+	}
+
 	return sb.String(), nil
 }
