@@ -79,4 +79,31 @@ func TestTop10(t *testing.T) {
 			require.Equal(t, expected, Top10(text))
 		}
 	})
+	text = "cat and dog, Dog ----- собака собака. кошка собака Dog"
+	t.Run("any coding text", func(t *testing.T) {
+		expected := []string{
+			"Dog",     // 2
+			"собака",  // 2
+			"-----",   // 1
+			"and",     // 1
+			"cat",     // 1
+			"dog,",    // 1
+			"кошка",   // 1
+			"собака.", // 1
+
+		}
+		require.Equal(t, expected, Top10(text))
+	})
+
+	text = ". , () ( ( ( ) )"
+	t.Run("symbols", func(t *testing.T) {
+		expected := []string{
+			"(",  // 3
+			")",  // 2
+			"()", // 1
+			",",  // 1
+			".",  // 1
+		}
+		require.Equal(t, expected, Top10(text))
+	})
 }
