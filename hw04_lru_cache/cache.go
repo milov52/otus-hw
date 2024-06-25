@@ -22,18 +22,18 @@ func (l *lruCache) Set(key Key, value interface{}) bool {
 		l.items[key].Value = value
 		l.queue.MoveToFront(e)
 		return true
-	} else {
-		if l.queue.Len() == l.capacity {
-			for k, v := range l.items {
-				if v == l.queue.Back() {
-					delete(l.items, k)
-					l.queue.Remove(v)
-				}
+	}
+
+	if l.queue.Len() == l.capacity {
+		for k, v := range l.items {
+			if v == l.queue.Back() {
+				delete(l.items, k)
+				l.queue.Remove(v)
 			}
 		}
-		l.items[key] = l.queue.PushFront(value)
-		return false
 	}
+	l.items[key] = l.queue.PushFront(value)
+	return false
 }
 
 func (l *lruCache) Get(key Key) (interface{}, bool) {
@@ -41,9 +41,8 @@ func (l *lruCache) Get(key Key) (interface{}, bool) {
 	if ok {
 		l.queue.MoveToFront(e)
 		return e.Value, true
-	} else {
-		return nil, false
 	}
+	return nil, false
 }
 
 func (l *lruCache) Clear() {
