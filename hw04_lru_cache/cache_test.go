@@ -50,7 +50,42 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(3)
+		for el, val := range map[Key]int{"a": 1, "b": 2, "c": 3} {
+			c.Set(el, val)
+		}
+
+		wasInCache := c.Set("d", 300)
+		require.False(t, wasInCache)
+
+		val, ok := c.Get("a")
+		require.False(t, ok)
+		require.Nil(t, val)
+	})
+
+	t.Run("purge old element logic", func(t *testing.T) {
+		c := NewCache(3)
+		for el, val := range map[Key]int{"a": 1, "b": 2, "c": 3} {
+			c.Set(el, val)
+		}
+
+		val, ok := c.Get("a")
+		require.True(t, ok)
+		require.Equal(t, 1, val)
+
+		val, ok = c.Get("c")
+		require.True(t, ok)
+		require.Equal(t, 3, val)
+
+		wasInCache := c.Set("a", 5)
+		require.True(t, wasInCache)
+
+		wasInCache = c.Set("d", 300)
+		require.False(t, wasInCache)
+
+		val, ok = c.Get("b")
+		require.False(t, ok)
+		require.Nil(t, val)
 	})
 }
 
