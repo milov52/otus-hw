@@ -19,7 +19,6 @@ func worker(
 	once *sync.Once, // Для однократного выполнения закрытия канала
 	m int, // Порог допустимых ошибок
 	errCount *int32, // Счетчик ошибок
-
 ) {
 	defer wg.Done()
 	for {
