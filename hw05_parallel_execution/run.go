@@ -3,6 +3,7 @@ package hw05parallelexecution
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
@@ -17,7 +18,8 @@ func worker(
 	errThresholdReached chan struct{}, // Канал для оповещения о превышении порога ошибок
 	once *sync.Once, // Для однократного выполнения закрытия канала
 	m int, // Порог допустимых ошибок
-	errCount *int, // Счетчик ошибок
+	errCount *int32, // Счетчик ошибок
+
 ) {
 	defer wg.Done()
 	for {
@@ -29,8 +31,7 @@ func worker(
 				return
 			}
 			if err := task(); err != nil {
-				*errCount++
-				if *errCount >= m {
+				if atomic.AddInt32(errCount, 1) >= int32(m) {
 					once.Do(func() {
 						close(errThresholdReached)
 					})
@@ -61,7 +62,7 @@ func Run(tasks []Task, n, m int) error {
 	taskCh := make(chan Task)
 	errThresholdReached := make(chan struct{})
 	tasksCompleted := make(chan struct{})
-	var errCount int
+	var errCount int32
 	var once sync.Once
 	var wg sync.WaitGroup
 
