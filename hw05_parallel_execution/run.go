@@ -11,34 +11,19 @@ var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 type Task func() error
 
 func Run(tasks []Task, n, m int) error {
-	if len(tasks) == 0 {
+	if len(tasks) == 0 || n == 0 {
 		return nil
 	}
 
-	taskCh := make(chan Task, len(tasks))
-	stopCh := make(chan struct{})
+	taskCh := make(chan Task)
 	var errCount int32
 	var wg sync.WaitGroup
-	var once sync.Once
 
 	worker := func() {
 		defer wg.Done()
-		for {
-			select {
-			case task, ok := <-taskCh:
-				if !ok {
-					return
-				}
-				if err := task(); err != nil {
-					if atomic.AddInt32(&errCount, 1) >= int32(m) {
-						once.Do(func() {
-							close(stopCh)
-						})
-						return
-					}
-				}
-			case <-stopCh:
-				return
+		for task := range taskCh {
+			if err := task(); err != nil {
+				atomic.AddInt32(&errCount, 1)
 			}
 		}
 	}
@@ -49,16 +34,16 @@ func Run(tasks []Task, n, m int) error {
 	}
 
 	for _, task := range tasks {
-		select {
-		case <-stopCh:
+		if atomic.LoadInt32(&errCount) >= int32(m) {
 			break
-		case taskCh <- task:
 		}
+		taskCh <- task
 	}
+
 	close(taskCh)
 	wg.Wait()
 
-	if errCount >= int32(m) {
+	if atomic.LoadInt32(&errCount) >= int32(m) {
 		return ErrErrorsLimitExceeded
 	}
 	return nil
