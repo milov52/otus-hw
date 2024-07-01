@@ -85,7 +85,11 @@ func TestRun(t *testing.T) {
 		}
 
 		err := Run(tasks, 2, 0)
-		require.True(t, errors.Is(err, ErrErrorsLimitExceeded), "expected ErrErrorsLimitExceeded when max errors allowed is 0")
+		require.True(
+			t,
+			errors.Is(err, ErrErrorsLimitExceeded),
+			"expected ErrErrorsLimitExceeded when max errors allowed is 0",
+		)
 	})
 
 	t.Run("no tasks", func(t *testing.T) {
@@ -151,5 +155,4 @@ func TestRun(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, int32(tasksCount), runTasksCount, "all tasks should be completed")
 	})
-
 }
