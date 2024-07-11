@@ -67,4 +67,92 @@ func TestRun(t *testing.T) {
 		require.Equal(t, runTasksCount, int32(tasksCount), "not all tasks were completed")
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
+
+	t.Run("zero workers", func(t *testing.T) {
+		tasks := []Task{
+			func() error { return nil },
+			func() error { return errors.New("error") },
+		}
+
+		err := Run(tasks, 0, 1)
+		require.NoError(t, err, "expected no error when no workers")
+	})
+
+	t.Run("zero maximum errors allowed", func(t *testing.T) {
+		tasks := []Task{
+			func() error { return errors.New("error") },
+			func() error { return nil },
+		}
+
+		err := Run(tasks, 2, 0)
+		require.True(
+			t,
+			errors.Is(err, ErrErrorsLimitExceeded),
+			"expected ErrErrorsLimitExceeded when max errors allowed is 0",
+		)
+	})
+
+	t.Run("no tasks", func(t *testing.T) {
+		var tasks []Task
+
+		err := Run(tasks, 5, 1)
+		require.NoError(t, err, "expected no error when no tasks")
+	})
+
+	t.Run("less tasks than workers", func(t *testing.T) {
+		var runTasksCount int32
+
+		tasks := []Task{
+			func() error {
+				atomic.AddInt32(&runTasksCount, 1)
+				return nil
+			},
+			func() error {
+				atomic.AddInt32(&runTasksCount, 1)
+				return nil
+			},
+		}
+
+		err := Run(tasks, 5, 1)
+		require.NoError(t, err)
+		require.Equal(t, int32(2), runTasksCount, "all tasks should be completed")
+	})
+
+	t.Run("long running tasks", func(t *testing.T) {
+		tasks := []Task{
+			func() error {
+				time.Sleep(200 * time.Millisecond)
+				return nil
+			},
+			func() error {
+				time.Sleep(300 * time.Millisecond)
+				return nil
+			},
+		}
+
+		start := time.Now()
+		err := Run(tasks, 2, 1)
+		elapsedTime := time.Since(start)
+
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, elapsedTime, 300*time.Millisecond, "tasks should have taken at least 300ms to complete")
+	})
+
+	t.Run("all tasks succeeding quickly", func(t *testing.T) {
+		tasksCount := 10
+		tasks := make([]Task, tasksCount)
+
+		var runTasksCount int32
+
+		for i := 0; i < tasksCount; i++ {
+			tasks[i] = func() error {
+				atomic.AddInt32(&runTasksCount, 1)
+				return nil
+			}
+		}
+
+		err := Run(tasks, 5, 1)
+		require.NoError(t, err)
+		require.Equal(t, int32(tasksCount), runTasksCount, "all tasks should be completed")
+	})
 }
