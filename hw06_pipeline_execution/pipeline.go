@@ -29,7 +29,7 @@ func executeStage(done In, in In, stage Stage) Out {
 }
 
 func workTask(done In, in In, stages ...Stage) Out {
-	var out Out = in
+	out := in
 	for _, stage := range stages {
 		out = executeStage(done, out, stage)
 	}
