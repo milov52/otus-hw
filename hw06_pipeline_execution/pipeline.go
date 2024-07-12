@@ -14,15 +14,11 @@ func executeStage(done In, in In, stage Stage) Out {
 		defer close(out)
 		stageOut := stage(in)
 		for {
-			select {
-			case <-done:
+			v, ok := <-stageOut
+			if !ok {
 				return
-			case v, ok := <-stageOut:
-				if !ok {
-					return
-				}
-				out <- v
 			}
+			out <- v
 		}
 	}()
 	return out
