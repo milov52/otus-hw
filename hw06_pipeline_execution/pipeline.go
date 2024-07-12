@@ -8,7 +8,7 @@ type (
 
 type Stage func(in In) (out Out)
 
-func executeStage(done In, in In, stage Stage) Out {
+func executeStage(in In, stage Stage) Out {
 	out := make(Bi)
 	go func() {
 		defer close(out)
@@ -30,7 +30,7 @@ func workTask(done In, in In, stages ...Stage) Out {
 		return nil
 	}
 	for _, stage := range stages {
-		out = executeStage(done, out, stage)
+		out = executeStage(out, stage)
 	}
 
 	return out
