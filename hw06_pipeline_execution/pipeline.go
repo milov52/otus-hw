@@ -2,68 +2,41 @@ package hw06pipelineexecution
 
 type (
 	In  = <-chan interface{}
-	Out = In
+	Out = <-chan interface{}
 	Bi  = chan interface{}
 )
 
-type Stage func(in In) (out Out)
+type Stage func(in In) Out
 
-func executeStage(done In, in In, stage Stage) Out {
-	out := make(Bi)
-	go func() {
-		defer close(out)
-		stageOut := stage(in)
-		for {
-			select {
-			case <-done:
-				// Сначала проверяем done
-				// Очищаем stageOut чтобы горутина stage не блокировалась
-				for range stageOut {
-				}
-				return
-			case v, ok := <-stageOut:
-				if !ok {
-					return
-				}
-				select {
-				case out <- v:
-				case <-done:
-					// Если получили сигнал done во время записи в out, очищаем stageOut
-					for range stageOut {
-					}
-					return
-				}
-			}
-		}
-	}()
+func single(v interface{}) In {
+	out := make(Bi, 1)
+	out <- v
+	close(out)
 	return out
 }
 
 func workTask(done In, in In, stages ...Stage) Out {
 	out := in
 	for _, stage := range stages {
-		out = executeStage(done, out, stage)
+		stageOut := make(Bi)
+		go func(in In, done In, stage Stage, stageOut Bi) {
+			defer close(stageOut)
+			for v := range in {
+				for result := range stage(single(v)) {
+					select {
+					case <-done:
+						return
+					default:
+						stageOut <- result
+					}
+				}
+			}
+		}(out, done, stage, stageOut)
+		out = stageOut
 	}
 	return out
 }
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	out := workTask(done, in, stages...)
-
-	result := make(Bi)
-	go func() {
-		defer close(result)
-		for {
-			select {
-			case <-done:
-				return
-			case v, ok := <-out:
-				if !ok {
-					return
-				}
-				result <- v
-			}
-		}
-	}()
-	return result
+	return workTask(done, in, stages...)
 }
