@@ -8,17 +8,32 @@ type (
 
 type Stage func(in In) (out Out)
 
-func executeStage(in In, stage Stage) Out {
+func executeStage(done In, in In, stage Stage) Out {
 	out := make(Bi)
 	go func() {
 		defer close(out)
 		stageOut := stage(in)
 		for {
-			v, ok := <-stageOut
-			if !ok {
+			select {
+			case <-done:
+				// Сначала проверяем done
+				// Очищаем stageOut чтобы горутина stage не блокировалась
+				for range stageOut {
+				}
 				return
+			case v, ok := <-stageOut:
+				if !ok {
+					return
+				}
+				select {
+				case out <- v:
+				case <-done:
+					// Если получили сигнал done во время записи в out, очищаем stageOut
+					for range stageOut {
+					}
+					return
+				}
 			}
-			out <- v
 		}
 	}()
 	return out
@@ -26,13 +41,9 @@ func executeStage(in In, stage Stage) Out {
 
 func workTask(done In, in In, stages ...Stage) Out {
 	out := in
-	if done != nil {
-		return nil
-	}
 	for _, stage := range stages {
-		out = executeStage(out, stage)
+		out = executeStage(done, out, stage)
 	}
-
 	return out
 }
 
