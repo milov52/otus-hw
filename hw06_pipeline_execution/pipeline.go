@@ -17,8 +17,9 @@ func executeStage(done In, in In, stage Stage) Out {
 		for {
 			select {
 			case <-done:
+				// Дожидаемся завершения stageOut, чтобы освободить ресурсы
 				for range stageOut {
-				}
+				} // revive:disable-line:empty-block
 				return
 			case v, ok := <-stageOut:
 				if !ok {
