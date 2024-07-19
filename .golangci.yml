@@ -15,6 +15,7 @@ linters-settings:
         allow:
           - $gostd
           - github.com/stretchr/testify/require
+          - github.com/cheggaaa/pb/v3
 
 issues:
   exclude-rules:
