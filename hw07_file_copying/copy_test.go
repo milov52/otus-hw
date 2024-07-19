@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"os"
 	"testing"
@@ -81,7 +82,7 @@ func TestCopy(t *testing.T) {
 			}
 
 			err = Copy(srcFile.Name(), dstFile.Name(), tt.offset, tt.limit)
-			if err != tt.expectError {
+			if !errors.Is(err, tt.expectError) {
 				t.Fatalf("Expected error %v, got %v", tt.expectError, err)
 			}
 
