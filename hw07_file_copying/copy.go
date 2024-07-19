@@ -52,17 +52,31 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 	defer dstFile.Close()
 
-	bar := pb.Full.Start64(srcFileInfo.Size())
+	// Вычисление ширины полосы прогресса
+	var maxBarWidth int64
+	if limit > 0 {
+		if offset+limit > srcFileInfo.Size() {
+			maxBarWidth = srcFileInfo.Size() - offset
+		} else {
+			maxBarWidth = limit
+		}
+	} else {
+		maxBarWidth = srcFileInfo.Size() - offset
+	}
+
+	// Создание и запуск полосы прогресса
+	bar := pb.Full.Start64(maxBarWidth)
 	defer bar.Finish()
 	barReader := bar.NewProxyReader(srcFile)
 
-	if limit > 0 {
+	// Копирование данных
+	if limit > 0 && offset+limit <= srcFileInfo.Size() {
 		_, err = io.CopyN(dstFile, barReader, limit)
 	} else {
 		_, err = io.Copy(dstFile, barReader)
 	}
 
-	if err != nil && errors.Is(err, io.EOF) {
+	if err != nil && !errors.Is(err, io.EOF) {
 		return err
 	}
 
