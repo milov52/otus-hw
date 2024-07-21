@@ -9,55 +9,12 @@ import (
 )
 
 var (
-	ErrUnsupportedFile          = errors.New("unsupported file")
-	ErrOffsetExceedsFileSize    = errors.New("offset exceeds file size")
-	ErrSameSourceAndDestination = errors.New("source and destination paths are the same")
+	ErrUnsupportedFile       = errors.New("unsupported file")
+	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
 )
 
-func Copy(fromPath, toPath string, offset, limit int64) error {
-	if fromPath == "" || toPath == "" {
-		return ErrUnsupportedFile
-	}
-
-	// Проверка, не совпадают ли пути
-	if fromPath == toPath {
-		return ErrSameSourceAndDestination
-	}
-
-	srcFile, err := os.Open(fromPath)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	// Полученим информацию о файле
-	srcFileInfo, err := srcFile.Stat()
-	if err != nil {
-		return err
-	}
-
-	// Проверка на тип файла
-	if srcFileInfo.Mode()&os.ModeType != 0 {
-		return ErrUnsupportedFile
-	}
-
-	// Проверка, не превышает ли offset размер файла
-	if offset > srcFileInfo.Size() {
-		return ErrOffsetExceedsFileSize
-	}
-
-	// Установка смещения (offset)
-	_, err = srcFile.Seek(offset, io.SeekStart)
-	if err != nil {
-		return err
-	}
-
-	dstFile, err := os.Create(toPath)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-
+func createProgressBar(srcFile *os.File, offset, limit int64) *pb.ProgressBar {
+	srcFileInfo, _ := srcFile.Stat()
 	// Вычисление ширины полосы прогресса
 	var maxBarWidth int64
 	if limit > 0 {
@@ -71,20 +28,72 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 
 	// Создание и запуск полосы прогресса
-	bar := pb.Full.Start64(maxBarWidth)
+	return pb.Full.Start64(maxBarWidth)
+}
+
+func handleSrcFileErrors(srcFile *os.File, offset int64) error {
+	// Полученим информацию о файле
+	srcFileInfo, err := srcFile.Stat()
+	if err != nil {
+		return err
+	}
+	// Проверка на тип файла
+	if srcFileInfo.Mode()&os.ModeType != 0 {
+		return ErrUnsupportedFile
+	}
+	// Проверка, не превышает ли offset размер файла
+	if offset > srcFileInfo.Size() {
+		return ErrOffsetExceedsFileSize
+	}
+	return nil
+}
+
+func Copy(fromPath, toPath string, offset, limit int64) error {
+	if fromPath == "" || toPath == "" {
+		return ErrUnsupportedFile
+	}
+
+	srcFile, err := os.Open(fromPath)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	if err := handleSrcFileErrors(srcFile, offset); err != nil {
+		return err
+	}
+
+	// Установка смещения (offset)
+	_, err = srcFile.Seek(offset, io.SeekStart)
+	if err != nil {
+		return err
+	}
+
+	tmpDstFile, err := os.CreateTemp("", "dstFileTmp")
+	if err != nil {
+		return err
+	}
+	defer tmpDstFile.Close()
+
+	bar := createProgressBar(srcFile, offset, limit)
 	defer bar.Finish()
 	barReader := bar.NewProxyReader(srcFile)
 
 	// Копирование данных
+	srcFileInfo, _ := srcFile.Stat()
 	if limit > 0 && offset+limit <= srcFileInfo.Size() {
-		_, err = io.CopyN(dstFile, barReader, limit)
+		_, err = io.CopyN(tmpDstFile, barReader, limit)
 	} else {
-		_, err = io.Copy(dstFile, barReader)
+		_, err = io.Copy(tmpDstFile, barReader)
 	}
 
 	if err != nil && !errors.Is(err, io.EOF) {
 		return err
 	}
 
+	err = os.Rename(tmpDstFile.Name(), toPath)
+	if err != nil {
+		return err
+	}
 	return nil
 }
