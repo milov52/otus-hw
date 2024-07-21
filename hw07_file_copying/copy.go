@@ -9,13 +9,19 @@ import (
 )
 
 var (
-	ErrUnsupportedFile       = errors.New("unsupported file")
-	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
+	ErrUnsupportedFile          = errors.New("unsupported file")
+	ErrOffsetExceedsFileSize    = errors.New("offset exceeds file size")
+	ErrSameSourceAndDestination = errors.New("source and destination paths are the same")
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
 	if fromPath == "" || toPath == "" {
 		return ErrUnsupportedFile
+	}
+
+	// Проверка, не совпадают ли пути
+	if fromPath == toPath {
+		return ErrSameSourceAndDestination
 	}
 
 	srcFile, err := os.Open(fromPath)

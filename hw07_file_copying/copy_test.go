@@ -99,3 +99,16 @@ func TestCopy(t *testing.T) {
 		})
 	}
 }
+
+func TestCopySameSourceAndDestination(t *testing.T) {
+	tempFile, err := os.CreateTemp("", "tempFile")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tempFile.Name())
+
+	err = Copy(tempFile.Name(), tempFile.Name(), 0, 0)
+	if err == nil {
+		t.Error("Expected error when source and destination paths are the same, but got nil")
+	}
+}
