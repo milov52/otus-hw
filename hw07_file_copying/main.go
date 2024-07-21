@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 )
 
 var (
@@ -23,8 +22,5 @@ func main() {
 	err := Copy(from, to, offset, limit)
 	if err != nil {
 		fmt.Println("Error during copying:", err)
-		if removeErr := os.Remove(to); removeErr != nil {
-			fmt.Println("Error deliting the destination file", removeErr)
-		}
 	}
 }
