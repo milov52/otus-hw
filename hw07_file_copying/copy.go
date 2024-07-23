@@ -57,7 +57,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	if err != nil {
 		return err
 	}
-	defer srcFile.Close()
 
 	if err := handleSrcFileErrors(srcFile, offset); err != nil {
 		return err
@@ -69,7 +68,13 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return err
 	}
 
-	tmpDstFile, err := os.CreateTemp("", "dstFileTmp")
+	// Получаем текущий рабочий каталог
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	tmpDstFile, err := os.CreateTemp(cwd, "dstFileTmp")
 	if err != nil {
 		return err
 	}
@@ -91,6 +96,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return err
 	}
 
+	srcFile.Close()
 	err = os.Rename(tmpDstFile.Name(), toPath)
 	if err != nil {
 		return err
