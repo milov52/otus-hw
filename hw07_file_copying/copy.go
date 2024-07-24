@@ -57,6 +57,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	if err != nil {
 		return err
 	}
+	defer srcFile.Close()
 
 	if err := handleSrcFileErrors(srcFile, offset); err != nil {
 		return err
@@ -78,7 +79,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	if err != nil {
 		return err
 	}
-	defer tmpDstFile.Close()
 
 	bar := createProgressBar(srcFile, offset, limit)
 	defer bar.Finish()
@@ -96,7 +96,16 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return err
 	}
 
+	tmpDstFile.Close()
 	srcFile.Close()
+
+	if fromPath == toPath {
+		err := os.Remove(srcFile.Name())
+		if err != nil {
+			return err
+		}
+	}
+
 	err = os.Rename(tmpDstFile.Name(), toPath)
 	if err != nil {
 		return err
