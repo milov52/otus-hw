@@ -26,12 +26,16 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 	currentEnv := os.Environ()
 	// Копирование текущих переменных окружения в новый срез
 	c.Env = append([]string{}, currentEnv...)
+
+	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 
 	err := c.Run()
 	if err != nil {
-		return 1
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return exitError.ExitCode()
+		}
 	}
 	return 0
 }
