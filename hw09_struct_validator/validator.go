@@ -19,18 +19,6 @@ const (
 	MAX    = "max"
 )
 
-type Validator struct {
-	IntValidators    *IntValidators
-	StringValidators *StringValidators
-	ByteValidators   *ByteValidators
-}
-
-type ValidateField struct {
-	Tag       string
-	Name      string
-	Validator Validator
-}
-
 type ValidationErrors []ValidationError
 
 func (v ValidationErrors) Error() string {
