@@ -19,6 +19,18 @@ const (
 	MAX    = "max"
 )
 
+type Validator struct {
+	IntValidators    *IntValidators
+	StringValidators *StringValidators
+	ByteValidators   *ByteValidators
+}
+
+type ValidateField struct {
+	Tag       string
+	Name      string
+	Validator Validator
+}
+
 type ValidationErrors []ValidationError
 
 func (v ValidationErrors) Error() string {
@@ -32,33 +44,66 @@ func (v ValidationErrors) Error() string {
 	return sb.String()
 }
 
+func validateSliceField(f reflect.StructField, val reflect.Value, fieldName string, vErr ValidationErrors) (ValidationErrors, error) {
+	elemKind := f.Type.Elem().Kind()
+
+	switch elemKind {
+	case reflect.String:
+		stringValidator, err := parseStringValidators(f.Tag.Get("validate"))
+		if err != nil {
+			return nil, err
+		}
+
+		for i := 0; i < val.Len(); i++ {
+			fieldName := fmt.Sprintf("%s[%d]", fieldName, i)
+			vErr = validateString(*stringValidator, val.Index(i).String(), fieldName, vErr)
+		}
+	case reflect.Int:
+		intValidator, err := parseIntValidators(f.Tag.Get("validate"))
+		if err != nil {
+			return nil, err
+		}
+
+		for i := 0; i < val.Len(); i++ {
+			fieldName := fmt.Sprintf("%s[%d]", fieldName, i)
+			vErr = validateInt(*intValidator, int(val.Index(i).Int()), fieldName, vErr)
+		}
+
+	case reflect.Uint8:
+		byteValidator, err := parseByteValidators(f.Tag.Get("validate"))
+		if err != nil {
+			return nil, err
+		}
+		return validateByte(*byteValidator, val, fieldName, vErr), nil
+
+	default:
+		vErr = append(vErr, ValidationError{
+			Field: "Slice",
+			Err:   fmt.Errorf("not supported slice type"),
+		})
+	}
+
+	return vErr, nil
+}
+
 func validateField(f reflect.StructField, val reflect.Value, vErr ValidationErrors) (ValidationErrors, error) {
 	fieldName := f.Name
-	switch f.Type.Kind() {
+
+	switch val.Kind() {
 	case reflect.String:
-		return validateString(f, val, vErr, fieldName)
-	case reflect.Int:
-		return validateInt(f, val, vErr, fieldName)
-	case reflect.Slice:
-		elemKind := f.Type.Elem().Kind()
-		for i := 0; i < val.Len(); i++ {
-			elemVal := val.Index(i)
-			switch elemKind {
-			case reflect.String:
-				fieldName = fmt.Sprintf("%s[%d]", fieldName, i)
-				vErr, _ = validateString(f, elemVal, vErr, fieldName)
-			case reflect.Int:
-				fieldName = fmt.Sprintf("%s[%d]", fieldName, i)
-				vErr, _ = validateInt(f, elemVal, vErr, fieldName)
-			case reflect.Uint8:
-				return validateByte(f, val, vErr, fieldName)
-			default:
-				vErr = append(vErr, ValidationError{
-					Field: "Slice",
-					Err:   fmt.Errorf("not supported slice type"),
-				})
-			}
+		stringValidator, err := parseStringValidators(f.Tag.Get("validate"))
+		if err != nil {
+			return nil, err
 		}
+		return validateString(*stringValidator, val.String(), fieldName, vErr), nil
+	case reflect.Int:
+		intValidator, err := parseIntValidators(f.Tag.Get("validate"))
+		if err != nil {
+			return nil, err
+		}
+		return validateInt(*intValidator, int(val.Int()), fieldName, vErr), nil
+	case reflect.Slice:
+		return validateSliceField(f, val, fieldName, vErr)
 	default:
 		vErr = append(vErr, ValidationError{
 			Field: fieldName,

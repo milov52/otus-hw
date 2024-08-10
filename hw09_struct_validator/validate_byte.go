@@ -7,26 +7,32 @@ import (
 	"strings"
 )
 
-func validateByte(f reflect.StructField, val reflect.Value, vErr ValidationErrors, fieldName string) (ValidationErrors, error) {
-	validators := strings.Split(f.Tag.Get("validate"), "|")
-	for _, item := range validators {
+type ByteValidators struct {
+	Len *int
+}
+
+func parseByteValidators(tag string) (*ByteValidators, error) {
+	bVal := ByteValidators{}
+
+	for _, item := range strings.Split(tag, "|") {
 		validator := strings.Split(item, ":")
-
-		if validator[0] != LEN {
-			return vErr, fmt.Errorf("unknown validator %s", validator[0])
-		}
-
-		valLen, pErr := strconv.Atoi(validator[1])
-		if pErr != nil {
-			return vErr, pErr
-		}
-
-		if val.Len() != valLen {
-			vErr = append(vErr, ValidationError{
-				Field: fieldName,
-				Err:   fmt.Errorf("expected length %d, got %d", valLen, val.Len()),
-			})
+		if validator[0] == LEN {
+			len, pErr := strconv.Atoi(validator[1])
+			if pErr != nil {
+				return nil, pErr
+			}
+			bVal.Len = &len
 		}
 	}
-	return vErr, nil
+	return &bVal, nil
+}
+
+func validateByte(bVal ByteValidators, val reflect.Value, fieldName string, vErr ValidationErrors) ValidationErrors {
+	if bVal.Len != nil && val.Len() != *bVal.Len {
+		vErr = append(vErr, ValidationError{
+			Field: fieldName,
+			Err:   fmt.Errorf("expected length %d, got %d", *bVal.Len, val.Len()),
+		})
+	}
+	return vErr
 }

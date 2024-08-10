@@ -2,50 +2,73 @@ package hw09structvalidator
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 )
 
-func validateInt(f reflect.StructField, val reflect.Value, vErr ValidationErrors, fieldName string) (ValidationErrors, error) {
-	validators := strings.Split(f.Tag.Get("validate"), "|")
-	for _, item := range validators {
+type IntValidators struct {
+	Min *int
+	Max *int
+	In  []int
+}
+
+func NewIntValidators() *IntValidators {
+	return &IntValidators{
+		In: make([]int, 0),
+	}
+}
+
+func parseIntValidators(tag string) (*IntValidators, error) {
+	intValidator := NewIntValidators()
+	for _, item := range strings.Split(tag, "|") {
 		validator := strings.Split(item, ":")
 		switch validator[0] {
-		case
-			MIN:
+		case MIN:
 			valMin, pErr := strconv.Atoi(validator[1])
 			if pErr != nil {
-				return vErr, pErr
+				return nil, pErr
 			}
-			if val.Int() < int64(valMin) {
-				vErr = append(vErr, ValidationError{
-					Field: fieldName,
-					Err:   fmt.Errorf("value %d is less than min %d", val.Int(), valMin),
-				})
-			}
+			intValidator.Min = &valMin
 		case MAX:
 			valMax, pErr := strconv.Atoi(validator[1])
 			if pErr != nil {
-				return vErr, pErr
+				return nil, pErr
 			}
-			if val.Int() > int64(valMax) {
-				vErr = append(vErr, ValidationError{
-					Field: fieldName,
-					Err:   fmt.Errorf("value %d is more than min %d", val.Int(), valMax),
-				})
-			}
+			intValidator.Max = &valMax
 		case IN:
-			if !strings.Contains(validator[1], strconv.FormatInt(val.Int(), 10)) {
-				vErr = append(vErr, ValidationError{
-					Field: fieldName,
-					Err:   fmt.Errorf("value %d does not contains into %v", val.Int(), validator[1]),
-				})
+			parts := strings.Split(validator[1], ",")
+			for _, part := range parts {
+				valIn, pErr := strconv.Atoi(part)
+				if pErr != nil {
+					return nil, pErr
+				}
+				intValidator.In = append(intValidator.In, valIn)
 			}
-		default:
-			return vErr, fmt.Errorf("unknown validator %s", validator[0])
 		}
-
 	}
-	return vErr, nil
+	return intValidator, nil
+}
+
+func validateInt(iVal IntValidators, val int, fieldName string, vErr ValidationErrors) ValidationErrors {
+	if iVal.Min != nil && val < *iVal.Min {
+		vErr = append(vErr, ValidationError{
+			Field: fieldName,
+			Err:   fmt.Errorf("value %d is less than min %d", val, *iVal.Min),
+		})
+	}
+
+	if iVal.Max != nil && val > *iVal.Max {
+		vErr = append(vErr, ValidationError{
+			Field: fieldName,
+			Err:   fmt.Errorf("value %d is more than min %d", val, *iVal.Max),
+		})
+	}
+
+	if len(iVal.In) > 0 && !is_contains(iVal.In, val) {
+		vErr = append(vErr, ValidationError{
+			Field: fieldName,
+			Err:   fmt.Errorf("value %d does not contains into %v", val, iVal.In),
+		})
+	}
+	return vErr
 }
