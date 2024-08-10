@@ -37,7 +37,7 @@ type (
 	}
 )
 
-func TestValidate(t *testing.T) {
+func TestValidateUser(t *testing.T) {
 	tests := []struct {
 		name        string
 		in          interface{}
@@ -60,7 +60,7 @@ func TestValidate(t *testing.T) {
 				},
 				{
 					Field: "Role",
-					Err:   fmt.Errorf("value admin1 does not contains into admin,stuff"),
+					Err:   fmt.Errorf("value admin1 does not contains into [admin stuff]"),
 				},
 			},
 		},
@@ -352,7 +352,7 @@ func TestValidateResponse(t *testing.T) {
 			expectedErr: ValidationErrors{
 				{
 					Field: "Code",
-					Err:   fmt.Errorf("value 403 does not contains into 200,404,500"),
+					Err:   fmt.Errorf("value 403 does not contains into [200 404 500]"),
 				},
 			},
 		},
