@@ -7,10 +7,7 @@ import (
 	"strings"
 )
 
-func validateInt(f reflect.StructField,
-	val reflect.Value,
-	vErr ValidationErrors,
-	fieldName string) (ValidationErrors, error) {
+func validateInt(f reflect.StructField, val reflect.Value, vErr ValidationErrors, fieldName string) (ValidationErrors, error) {
 	validators := strings.Split(f.Tag.Get("validate"), "|")
 	for _, item := range validators {
 		validator := strings.Split(item, ":")
@@ -45,7 +42,10 @@ func validateInt(f reflect.StructField,
 					Err:   fmt.Errorf("value %d does not contains into %v", val.Int(), validator[1]),
 				})
 			}
+		default:
+			return vErr, fmt.Errorf("unknown validator %s", validator[0])
 		}
+
 	}
 	return vErr, nil
 }
