@@ -59,6 +59,11 @@ func validateField(f reflect.StructField, val reflect.Value, vErr ValidationErro
 				})
 			}
 		}
+	default:
+		vErr = append(vErr, ValidationError{
+			Field: fieldName,
+			Err:   fmt.Errorf("not supported type"),
+		})
 	}
 	return vErr, nil
 }

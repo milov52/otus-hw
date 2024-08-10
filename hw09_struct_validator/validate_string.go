@@ -8,7 +8,10 @@ import (
 	"strings"
 )
 
-func validateString(f reflect.StructField, val reflect.Value, vErr ValidationErrors, fieldName string) (ValidationErrors, error) {
+func validateString(f reflect.StructField,
+	val reflect.Value,
+	vErr ValidationErrors,
+	fieldName string) (ValidationErrors, error) {
 	validators := strings.Split(f.Tag.Get("validate"), "|")
 	for _, item := range validators {
 		validator := strings.Split(item, ":")

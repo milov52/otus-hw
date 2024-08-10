@@ -7,7 +7,10 @@ import (
 	"strings"
 )
 
-func validateByte(f reflect.StructField, val reflect.Value, vErr ValidationErrors, fieldName string) (ValidationErrors, error) {
+func validateByte(f reflect.StructField,
+	val reflect.Value,
+	vErr ValidationErrors,
+	fieldName string) (ValidationErrors, error) {
 	validators := strings.Split(f.Tag.Get("validate"), "|")
 	for _, item := range validators {
 		validator := strings.Split(item, ":")
@@ -25,7 +28,6 @@ func validateByte(f reflect.StructField, val reflect.Value, vErr ValidationError
 				})
 			}
 		}
-
 	}
 	return vErr, nil
 }

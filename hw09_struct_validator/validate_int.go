@@ -7,7 +7,10 @@ import (
 	"strings"
 )
 
-func validateInt(f reflect.StructField, val reflect.Value, vErr ValidationErrors, fieldName string) (ValidationErrors, error) {
+func validateInt(f reflect.StructField,
+	val reflect.Value,
+	vErr ValidationErrors,
+	fieldName string) (ValidationErrors, error) {
 	validators := strings.Split(f.Tag.Get("validate"), "|")
 	for _, item := range validators {
 		validator := strings.Split(item, ":")
