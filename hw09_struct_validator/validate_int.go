@@ -64,7 +64,7 @@ func validateInt(iVal IntValidators, val int, fieldName string, vErr ValidationE
 		})
 	}
 
-	if len(iVal.In) > 0 && !is_contains(iVal.In, val) {
+	if len(iVal.In) > 0 && !Contains(iVal.In, val) {
 		vErr = append(vErr, ValidationError{
 			Field: fieldName,
 			Err:   fmt.Errorf("value %d does not contains into %v", val, iVal.In),

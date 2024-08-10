@@ -32,49 +32,54 @@ func (v ValidationErrors) Error() string {
 	return sb.String()
 }
 
-func validateSliceField(f reflect.StructField, val reflect.Value, fieldName string, vErr ValidationErrors) (ValidationErrors, error) {
+func validateSliceField(f reflect.StructField,
+	val reflect.Value,
+	fieldName string,
+	vErr ValidationErrors,
+) (ValidationErrors, error) {
 	elemKind := f.Type.Elem().Kind()
+	tag := f.Tag.Get("validate")
 
 	switch elemKind {
 	case reflect.String:
-		stringValidator, err := parseStringValidators(f.Tag.Get("validate"))
+		stringValidator, err := parseStringValidators(tag)
 		if err != nil {
 			return nil, err
 		}
-
 		for i := 0; i < val.Len(); i++ {
-			fieldName := fmt.Sprintf("%s[%d]", fieldName, i)
-			vErr = validateString(*stringValidator, val.Index(i).String(), fieldName, vErr)
+			indexedFieldName := fmt.Sprintf("%s[%d]", fieldName, i)
+			vErr = validateString(*stringValidator, val.Index(i).String(), indexedFieldName, vErr)
 		}
+		return vErr, nil
+
 	case reflect.Int:
-		intValidator, err := parseIntValidators(f.Tag.Get("validate"))
+		intValidator, err := parseIntValidators(tag)
 		if err != nil {
 			return nil, err
 		}
 
 		for i := 0; i < val.Len(); i++ {
-			fieldName := fmt.Sprintf("%s[%d]", fieldName, i)
-			vErr = validateInt(*intValidator, int(val.Index(i).Int()), fieldName, vErr)
+			indexedFieldName := fmt.Sprintf("%s[%d]", fieldName, i)
+			vErr = validateInt(*intValidator, int(val.Index(i).Int()), indexedFieldName, vErr)
 		}
+		return vErr, nil
 
 	case reflect.Uint8:
-		byteValidator, err := parseByteValidators(f.Tag.Get("validate"))
+		byteValidator, err := parseByteValidators(tag)
 		if err != nil {
 			return nil, err
 		}
 		return validateByte(*byteValidator, val, fieldName, vErr), nil
 
 	default:
-		vErr = append(vErr, ValidationError{
+		return append(vErr, ValidationError{
 			Field: "Slice",
 			Err:   fmt.Errorf("not supported slice type"),
-		})
+		}), nil
 	}
-
-	return vErr, nil
 }
 
-func validateField(f reflect.StructField, val reflect.Value, vErr ValidationErrors) (ValidationErrors, error) {
+func validateStruct(f reflect.StructField, val reflect.Value, vErr ValidationErrors) (ValidationErrors, error) {
 	fieldName := f.Name
 
 	switch val.Kind() {
@@ -124,7 +129,7 @@ func Validate(v any) error {
 		}
 
 		var sysErr error
-		ve, sysErr = validateField(field, value, ve)
+		ve, sysErr = validateStruct(field, value, ve)
 		if sysErr != nil {
 			return sysErr
 		}

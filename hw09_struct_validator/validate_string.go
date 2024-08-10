@@ -58,7 +58,7 @@ func validateString(sVal StringValidators, val string, fieldName string, vErr Va
 		})
 	}
 
-	if len(sVal.In) > 0 && !is_contains(sVal.In, val) {
+	if len(sVal.In) > 0 && !Contains(sVal.In, val) {
 		vErr = append(vErr, ValidationError{
 			Field: fieldName,
 			Err:   fmt.Errorf("value %s does not contains into %v", val, sVal.In),

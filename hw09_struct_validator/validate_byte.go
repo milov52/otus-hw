@@ -17,11 +17,11 @@ func parseByteValidators(tag string) (*ByteValidators, error) {
 	for _, item := range strings.Split(tag, "|") {
 		validator := strings.Split(item, ":")
 		if validator[0] == LEN {
-			len, pErr := strconv.Atoi(validator[1])
+			lenVal, pErr := strconv.Atoi(validator[1])
 			if pErr != nil {
 				return nil, pErr
 			}
-			bVal.Len = &len
+			bVal.Len = &lenVal
 		}
 	}
 	return &bVal, nil

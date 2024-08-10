@@ -133,7 +133,6 @@ func TestValidateUser(t *testing.T) {
 			t.Parallel()
 
 			err := Validate(tt.in)
-
 			if err != nil {
 				var vErr ValidationErrors
 
@@ -229,7 +228,6 @@ func TestValidateToken(t *testing.T) {
 			t.Parallel()
 
 			err := Validate(tt.in)
-
 			if err != nil {
 				var vErr ValidationErrors
 
@@ -305,7 +303,6 @@ func TestValidateApp(t *testing.T) {
 			t.Parallel()
 
 			err := Validate(tt.in)
-
 			if err != nil {
 				var vErr ValidationErrors
 				if !errors.As(err, &vErr) {
@@ -387,7 +384,6 @@ func TestValidateResponse(t *testing.T) {
 			t.Parallel()
 
 			err := Validate(tt.in)
-
 			if err != nil {
 				var vErr ValidationErrors
 				if !errors.As(err, &vErr) {
