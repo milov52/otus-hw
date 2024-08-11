@@ -72,10 +72,7 @@ func validateSliceField(f reflect.StructField,
 		return validateByte(*byteValidator, val, fieldName, vErr), nil
 
 	default:
-		return append(vErr, ValidationError{
-			Field: "Slice",
-			Err:   fmt.Errorf("not supported slice type"),
-		}), nil
+		return nil, fmt.Errorf("Not supported slice type")
 	}
 }
 
@@ -98,10 +95,7 @@ func validateStruct(f reflect.StructField, val reflect.Value, vErr ValidationErr
 	case reflect.Slice:
 		return validateSliceField(f, val, fieldName, vErr)
 	default:
-		vErr = append(vErr, ValidationError{
-			Field: fieldName,
-			Err:   fmt.Errorf("not supported type"),
-		})
+		return nil, fmt.Errorf("Not supported type")
 	}
 	return vErr, nil
 }
