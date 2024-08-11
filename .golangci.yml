@@ -37,7 +37,6 @@ linters:
     - bodyclose
     - durationcheck
     - errorlint
-    - exhaustive
     - exportloopref
     - funlen
     - gci
