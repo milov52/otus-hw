@@ -1,3 +1,4 @@
+//go:build !bench
 // +build !bench
 
 package hw10programoptimization
@@ -36,4 +37,24 @@ func TestGetDomainStat(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
 	})
+}
+
+func TestGetDomainStat_EmptyData(t *testing.T) {
+	data := ``
+	result, err := GetDomainStat(bytes.NewBufferString(data), "com")
+	require.NoError(t, err)
+	require.Equal(t, DomainStat{}, result)
+}
+
+func TestGetDomainStat_InvalidJSON(t *testing.T) {
+	data := `{"Id":1,"Name":"Howard Mendoza","Username":"0Oliver","Email":"invalid_json`
+	_, err := GetDomainStat(bytes.NewBufferString(data), "com")
+	require.Error(t, err)
+}
+
+func TestGetDomainStat_OnlyAtSymbol(t *testing.T) {
+	data := `{"Id":1,"Name":"Howard Mendoza","Username":"0Oliver","Email":"justan@symbol","Phone":"6-866-899-36-79","Password":"InAQJvsq","Address":"Blackbird Place 25"}`
+	result, err := GetDomainStat(bytes.NewBufferString(data), "symbol")
+	require.NoError(t, err)
+	require.Equal(t, DomainStat{"symbol": 1}, result)
 }
