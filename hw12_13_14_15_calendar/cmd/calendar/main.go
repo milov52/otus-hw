@@ -3,7 +3,10 @@ package main
 import (
 	"context"
 	"flag"
+	"github.com/joho/godotenv"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
+	sqlstorage "github.com/milov52/hw12_13_14_15_calendar/internal/storage/sql"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,10 +17,18 @@ import (
 	memorystorage "github.com/milov52/hw12_13_14_15_calendar/internal/storage/memory"
 )
 
+const (
+	in_memory = "in-memory"
+	sql       = "sql"
+)
+
 var configFile string
 
 func init() {
 	flag.StringVar(&configFile, "config", "/etc/calendar/config.yaml", "Path to configuration file")
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
 }
 
 func main() {
@@ -31,10 +42,16 @@ func main() {
 	cfg := config.MustLoad(configFile)
 	logg := setupLogger(cfg.Env)
 
-	storage := memorystorage.New()
+	var storage app.Storage
+	switch cfg.DefaultStorage {
+	case in_memory:
+		storage = memorystorage.New()
+	case sql:
+		storage = sqlstorage.New()
+	}
 	calendar := app.New(*logg, storage)
 
-	server := internalhttp.NewServer(logg, calendar)
+	server := internalhttp.NewServer(*logg, *cfg, *calendar)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
