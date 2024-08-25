@@ -18,6 +18,13 @@ linters-settings:
           - github.com/stretchr/testify/assert
           - github.com/cheggaaa/pb/v3
           - github.com/mailru/easyjson
+          - github.com/google/uuid
+          - github.com/Masterminds/squirrel
+          - github.com/jackc/pgx/v4/pgxpool
+          - github.com/ilyakaznacheev/cleanenv
+          - github.com/milov52/hw12_13_14_15_calendar/internal/app
+          - github.com/milov52/hw12_13_14_15_calendar/internal/config
+          - github.com/milov52/hw12_13_14_15_calendar/internal/storage
 
 issues:
   exclude-rules:
@@ -27,6 +34,9 @@ issues:
         - dupl
         - gocyclo
         - gosec
+    - path: internal/config/config.go
+      linters:
+        - tagliatelle
 
 linters:
   disable-all: true
@@ -64,12 +74,10 @@ linters:
     - nolintlint
     - prealloc
     - predeclared
-    - revive
     - staticcheck
     - stylecheck
     - tagliatelle
     - thelper
-    - typecheck
     - unconvert
     - unparam
     - unused

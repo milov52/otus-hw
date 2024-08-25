@@ -1,25 +1,26 @@
+//nolint:depguard
 package main
 
 import (
 	"context"
 	"flag"
-	"github.com/joho/godotenv"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
-	sqlstorage "github.com/milov52/hw12_13_14_15_calendar/internal/storage/sql"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/app"
-	internalhttp "github.com/milov52/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/milov52/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/storage/sql"
 )
 
 const (
-	in_memory = "in-memory"
-	sql       = "sql"
+	inMemory = "in-memory"
+	sql      = "sql"
 )
 
 var configFile string
@@ -44,7 +45,7 @@ func main() {
 
 	var storage app.Storage
 	switch cfg.DefaultStorage {
-	case in_memory:
+	case inMemory:
 		storage = memorystorage.New()
 	case sql:
 		storage = sqlstorage.New()

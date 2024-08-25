@@ -1,11 +1,12 @@
 package memorystorage
 
 import (
+	"sync"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
 	"golang.org/x/net/context"
-	"sync"
-	"time"
 )
 
 type Storage struct {

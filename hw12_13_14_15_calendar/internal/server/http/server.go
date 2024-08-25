@@ -2,11 +2,12 @@ package internalhttp
 
 import (
 	"context"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/app"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 	"log/slog"
 	"net"
 	"net/http"
+
+	"github.com/milov52/hw12_13_14_15_calendar/internal/app"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 )
 
 type Server struct {
@@ -19,10 +20,10 @@ func NewServer(logger slog.Logger, cfg config.Config, app app.App) *Server {
 	return &Server{
 		logger: logger,
 		httpServer: &http.Server{
-			Addr:         net.JoinHostPort(cfg.HttpServer.Host, cfg.HttpServer.Port),
-			ReadTimeout:  cfg.HttpServer.Timeout,
-			WriteTimeout: cfg.HttpServer.Timeout,
-			IdleTimeout:  cfg.HttpServer.IdleTimeout,
+			Addr:         net.JoinHostPort(cfg.HTTPServer.Host, cfg.HTTPServer.Port),
+			ReadTimeout:  cfg.HTTPServer.Timeout,
+			WriteTimeout: cfg.HTTPServer.Timeout,
+			IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 		},
 		app: app,
 	}

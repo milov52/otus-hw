@@ -1,10 +1,11 @@
 package memorystorage
 
 import (
-	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
-	"golang.org/x/net/context"
 	"testing"
 	"time"
+
+	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
+	"golang.org/x/net/context"
 )
 
 func TestStorage_CreateEvent(t *testing.T) {

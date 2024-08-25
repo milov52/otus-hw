@@ -2,16 +2,18 @@ package sqlstorage
 
 import (
 	"context"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
-	"github.com/stretchr/testify/require"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
+	"github.com/stretchr/testify/require"
 )
 
 func setupTestDB(ctx context.Context, t *testing.T) (*Storage, func()) {
+	t.Helper()
 	// Получаем текущую рабочую директорию (где запущен тест)
 	cwd, err := os.Getwd()
 	if err != nil {

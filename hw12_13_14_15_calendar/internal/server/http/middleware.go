@@ -22,8 +22,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		status := ww.statusCode
 		userAgent := r.UserAgent()
 
-		// Пример лога
-		logger := slog.Default() // или использовать s.logger
+		logger := slog.Default()
 		logger.Info("Request",
 			"client_ip", clientIP,
 			"time", startTime.Format(time.RFC1123),
@@ -37,7 +36,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Обертка для ResponseWriter, чтобы отслеживать статус ответа
 type responseWriter struct {
 	http.ResponseWriter
 	statusCode int
