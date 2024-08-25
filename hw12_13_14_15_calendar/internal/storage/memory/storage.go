@@ -4,25 +4,26 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
+	"golang.org/x/net/context"
 	"sync"
 	"time"
 )
 
 type Storage struct {
 	byDay  map[string][]storage.Event
-	events map[string]storage.Event
+	events map[uuid.UUID]storage.Event
 	mu     sync.RWMutex
 }
 
 func New() *Storage {
 	return &Storage{
 		byDay:  make(map[string][]storage.Event),
-		events: make(map[string]storage.Event),
+		events: make(map[uuid.UUID]storage.Event),
 	}
 }
 
-func (s *Storage) generateID() string {
-	return uuid.New().String()
+func (s *Storage) generateID() uuid.UUID {
+	return uuid.New()
 }
 
 func (s *Storage) addToIndex(event storage.Event) {
@@ -35,7 +36,7 @@ func (s *Storage) removeFromIndex(event storage.Event) {
 	s.byDay[dayKey] = removeEventFromSlice(s.byDay[dayKey], event.ID)
 }
 
-func removeEventFromSlice(events []storage.Event, eventID string) []storage.Event {
+func removeEventFromSlice(events []storage.Event, eventID uuid.UUID) []storage.Event {
 	for i, e := range events {
 		if e.ID == eventID {
 			return append(events[:i], events[i+1:]...)
@@ -44,7 +45,7 @@ func removeEventFromSlice(events []storage.Event, eventID string) []storage.Even
 	return events
 }
 
-func (s *Storage) CreateEvent(event storage.Event) (string, error) {
+func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) (uuid.UUID, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -54,7 +55,7 @@ func (s *Storage) CreateEvent(event storage.Event) (string, error) {
 	return event.ID, nil
 }
 
-func (s *Storage) UpdateEvent(id string, event storage.Event) error {
+func (s *Storage) UpdateEvent(ctx context.Context, id uuid.UUID, event storage.Event) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -71,7 +72,7 @@ func (s *Storage) UpdateEvent(id string, event storage.Event) error {
 	return nil
 }
 
-func (s *Storage) DeleteEvent(id string) error {
+func (s *Storage) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -85,7 +86,7 @@ func (s *Storage) DeleteEvent(id string) error {
 	return nil
 }
 
-func (s *Storage) GetEvents(startDate time.Time, offset int) ([]storage.Event, error) {
+func (s *Storage) GetEvents(ctx context.Context, startDate time.Time, offset int) ([]storage.Event, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
