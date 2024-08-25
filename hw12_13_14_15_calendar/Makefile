@@ -1,5 +1,11 @@
+include local.env
+
 BIN := "./bin/calendar"
 DOCKER_IMG="calendar:develop"
+LOCAL_BIN:=$(CURDIR)/bin
+LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
+LOCAL_MIGRATION_DSN=$(MIGRATION_DSN)
+
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
@@ -8,7 +14,7 @@ build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
 
 run: build
-	$(BIN) -config ./configs/config.toml
+	$(BIN) -config ./configs/config.yaml
 
 build-img:
 	docker build \
@@ -32,3 +38,9 @@ lint: install-lint-deps
 	golangci-lint run ./...
 
 .PHONY: build run build-img run-img version test lint
+
+install-migrate-deps:
+	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.14.0
+
+migrate: install-migrate-deps
+	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} up -v
