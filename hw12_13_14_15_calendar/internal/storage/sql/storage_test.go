@@ -144,17 +144,18 @@ func TestStorage_GetEvents(t *testing.T) {
 	ctx := context.Background()
 	testStorage, cleanup := setupTestDB(ctx, t)
 	defer cleanup()
+	now := time.Date(2024, 8, 25, 0, 0, 0, 0, time.UTC)
 
 	// Создаем несколько событий
 	event1 := storage.Event{
 		Title:       "Event 1",
-		StartTime:   time.Now(),
+		StartTime:   now,
 		Duration:    time.Hour,
 		Description: "First event",
 	}
 	event2 := storage.Event{
 		Title:       "Event 2",
-		StartTime:   time.Now().AddDate(0, 0, 1), // Завтра
+		StartTime:   now.AddDate(0, 0, 1), // Завтра
 		Duration:    2 * time.Hour,
 		Description: "Second event",
 	}
@@ -165,7 +166,7 @@ func TestStorage_GetEvents(t *testing.T) {
 	require.NoError(t, err, "unexpected error during event creation")
 
 	// Получаем события на 2 дня вперед
-	events, err := testStorage.GetEvents(ctx, time.Now(), 2)
+	events, err := testStorage.GetEvents(ctx, now, 2)
 	require.NoError(t, err, "unexpected error during getting events")
 	require.Equal(t, 2, len(events), "expected 2 events")
 	require.Equal(t, "Event 1", events[0].Title, "unexpected event order")

@@ -114,10 +114,13 @@ func (s *Storage) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]storage.Event, error) {
 	const op = "storage.sql.GetEvents"
 
+	startDate := date.Format(time.DateOnly)                     // Приводим к формату даты
+	endDate := date.AddDate(0, 0, offset).Format(time.DateOnly) // Конечная дата
+
 	builderSelect := sq.Select("id", "title", "start_time", "description").
 		From("events").
 		PlaceholderFormat(sq.Dollar).
-		Where(sq.GtOrEq{"start_time": date.AddDate(0, 0, offset)})
+		Where(sq.Expr("start_time BETWEEN ? AND ?", startDate, endDate))
 
 	query, args, err := builderSelect.ToSql()
 	if err != nil {
@@ -134,6 +137,7 @@ func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]
 		if err := rows.Scan(&event.ID, &event.Title, &event.StartTime, &event.Description); err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
+		events = append(events, event)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
