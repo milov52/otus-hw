@@ -1,7 +1,6 @@
 package memorystorage
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
 	"golang.org/x/net/context"
@@ -27,13 +26,26 @@ func (s *Storage) generateID() uuid.UUID {
 }
 
 func (s *Storage) addToIndex(event storage.Event) {
-	dayKey := event.StartTime.Format("2006-01-02")
+	dayKey := event.StartTime.Format(time.DateOnly)
 	s.byDay[dayKey] = append(s.byDay[dayKey], event)
 }
 
 func (s *Storage) removeFromIndex(event storage.Event) {
-	dayKey := event.StartTime.Format("2006-01-02")
+	dayKey := event.StartTime.Format(time.DateOnly)
 	s.byDay[dayKey] = removeEventFromSlice(s.byDay[dayKey], event.ID)
+}
+
+func (s *Storage) isExistEvent(event storage.Event) bool {
+	dayKey := event.StartTime.Format(time.DateOnly)
+	events, ok := s.byDay[dayKey]
+	if ok {
+		for _, item := range events {
+			if item.StartTime == event.StartTime {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func removeEventFromSlice(events []storage.Event, eventID uuid.UUID) []storage.Event {
@@ -46,6 +58,10 @@ func removeEventFromSlice(events []storage.Event, eventID uuid.UUID) []storage.E
 }
 
 func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) (uuid.UUID, error) {
+	if s.isExistEvent(event) {
+		return uuid.Nil, storage.ErrDateBusy
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -61,7 +77,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, id uuid.UUID, event storage.E
 
 	oldEvent, ok := s.events[id]
 	if !ok {
-		return fmt.Errorf("event with id not found")
+		return storage.ErrEventNotFound
 	}
 
 	// Удаляем старую версию события из индексов
@@ -78,7 +94,7 @@ func (s *Storage) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 
 	event, ok := s.events[id]
 	if !ok {
-		return fmt.Errorf("event with id not foundd")
+		return storage.ErrEventNotFound
 	}
 
 	s.removeFromIndex(event)
@@ -93,11 +109,13 @@ func (s *Storage) GetEvents(ctx context.Context, startDate time.Time, offset int
 	var events []storage.Event
 	for i := 0; i < offset; i++ {
 		day := startDate.AddDate(0, 0, i)
-		dayKey := day.Format("2006-01-02")
+		dayKey := day.Format(time.DateOnly)
 		if dayEvents, ok := s.byDay[dayKey]; ok {
 			events = append(events, dayEvents...)
 		}
 	}
-
+	if len(events) == 0 {
+		return events, storage.ErrEventNotFound
+	}
 	return events, nil
 }

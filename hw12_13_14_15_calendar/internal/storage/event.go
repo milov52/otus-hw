@@ -1,8 +1,14 @@
 package storage
 
 import (
+	"errors"
 	"github.com/google/uuid"
 	"time"
+)
+
+var (
+	ErrDateBusy      = errors.New("date is busy for this event")
+	ErrEventNotFound = errors.New("event not found")
 )
 
 type Event struct {
