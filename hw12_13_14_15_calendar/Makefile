@@ -1,10 +1,8 @@
-include local.env
-
 BIN := "./bin/calendar"
 DOCKER_IMG="calendar:develop"
 LOCAL_BIN:=$(CURDIR)/bin
-LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
-LOCAL_MIGRATION_DSN=$(MIGRATION_DSN)
+LOCAL_MIGRATION_DIR="./migrations/"
+LOCAL_MIGRATION_DSN="host=localhost port=54321 dbname=calendar user=calendar-user password=calendar-password sslmode=disable"
 
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
