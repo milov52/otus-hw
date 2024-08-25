@@ -1,7 +1,6 @@
 package config
 
 import (
-	"flag"
 	"github.com/ilyakaznacheev/cleanenv"
 	"log"
 	"os"
@@ -9,9 +8,17 @@ import (
 )
 
 type Config struct {
-	Env         string     `yaml:"env" env-default:"local" env-required:"true"`
-	StoragePath string     `yaml:"storage_path"  env-required:"true"`
-	HttpServer  HTTPServer `yaml:"http_server"`
+	Env        string     `yaml:"env" env-default:"local" env-required:"true"`
+	HttpServer HTTPServer `yaml:"http_server"`
+	Database   Database   `yaml:"database"`
+}
+
+type Database struct {
+	Host     string `yaml:"host" env-required:"true"`
+	Port     string `yaml:"port" env-required:"true"`
+	Username string `yaml:"username" env-required:"true"`
+	Password string `yaml:"password" env-required:"true"`
+	DBName   string `yaml:"dbname" env-required:"true"`
 }
 
 type HTTPServer struct {
@@ -20,13 +27,7 @@ type HTTPServer struct {
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
 }
 
-func init() {
-}
-
-func MustLoad(configFile string) *Config {
-	var configPath string
-	flag.StringVar(&configPath, "config", "/etc/calendar/config.yaml", "Path to configuration file")
-
+func MustLoad(configPath string) *Config {
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH environment variable not set")
 	}
