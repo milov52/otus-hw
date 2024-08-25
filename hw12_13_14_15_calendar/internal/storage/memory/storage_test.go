@@ -2,6 +2,7 @@ package memorystorage
 
 import (
 	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
+	"golang.org/x/net/context"
 	"testing"
 	"time"
 )
@@ -16,7 +17,7 @@ func TestStorage_CreateEvent(t *testing.T) {
 		UserID:    "user1",
 	}
 
-	_, err := testStorage.CreateEvent(event)
+	_, err := testStorage.CreateEvent(context.Background(), event)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -25,7 +26,7 @@ func TestStorage_CreateEvent(t *testing.T) {
 		t.Fatalf("expected 1 event in storage, got %d", len(testStorage.events))
 	}
 
-	dayKey := event.StartTime.Format("2006-01-02")
+	dayKey := event.StartTime.Format(time.DateOnly)
 	if len(testStorage.byDay[dayKey]) != 1 {
 		t.Fatalf("expected 1 event in day index, got %d", len(testStorage.byDay[dayKey]))
 	}
@@ -41,7 +42,7 @@ func TestStorage_UpdateEvent(t *testing.T) {
 		UserID:    "user1",
 	}
 
-	id, err := testStorage.CreateEvent(event)
+	id, err := testStorage.CreateEvent(context.Background(), event)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -53,7 +54,7 @@ func TestStorage_UpdateEvent(t *testing.T) {
 		UserID:    "user1",
 	}
 
-	err = testStorage.UpdateEvent(id, updatedEvent)
+	err = testStorage.UpdateEvent(context.Background(), id, updatedEvent)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -67,7 +68,7 @@ func TestStorage_UpdateEvent(t *testing.T) {
 		t.Errorf("expected title 'Updated Event', got %s", storedEvent.Title)
 	}
 
-	dayKey := updatedEvent.StartTime.Format("2006-01-02")
+	dayKey := updatedEvent.StartTime.Format(time.DateOnly)
 	if len(testStorage.byDay[dayKey]) != 1 {
 		t.Fatalf("expected 1 event in day index after update, got %d", len(testStorage.byDay[dayKey]))
 	}
@@ -83,12 +84,12 @@ func TestStorage_DeleteEvent(t *testing.T) {
 		UserID:    "user1",
 	}
 
-	id, err := testStorage.CreateEvent(event)
+	id, err := testStorage.CreateEvent(context.Background(), event)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	err = testStorage.DeleteEvent(id)
+	err = testStorage.DeleteEvent(context.Background(), id)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -97,7 +98,7 @@ func TestStorage_DeleteEvent(t *testing.T) {
 		t.Fatalf("expected 0 events in storage after deletion, got %d", len(testStorage.events))
 	}
 
-	dayKey := event.StartTime.Format("2006-01-02")
+	dayKey := event.StartTime.Format(time.DateOnly)
 	if len(testStorage.byDay[dayKey]) != 0 {
 		t.Fatalf("expected 0 events in day index after deletion, got %d", len(testStorage.byDay[dayKey]))
 	}
@@ -125,13 +126,13 @@ func TestStorage_GetEvents(t *testing.T) {
 		Duration:  time.Hour,
 		UserID:    "user3",
 	}
-
-	_, _ = testStorage.CreateEvent(event1)
-	_, _ = testStorage.CreateEvent(event2)
-	_, _ = testStorage.CreateEvent(event3)
+	ctx := context.Background()
+	_, _ = testStorage.CreateEvent(ctx, event1)
+	_, _ = testStorage.CreateEvent(ctx, event2)
+	_, _ = testStorage.CreateEvent(ctx, event3)
 
 	// Получаем события на 2 дня вперед
-	events, err := testStorage.GetEvents(time.Now(), 2)
+	events, err := testStorage.GetEvents(ctx, time.Now(), 2)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
