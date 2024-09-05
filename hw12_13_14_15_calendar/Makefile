@@ -37,8 +37,22 @@ lint: install-lint-deps
 
 .PHONY: build run build-img run-img version test lint
 
-install-migrate-deps:
+install-deps:
+	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
+	GOBIN=$(LOCAL_BIN) go install -mod=mod google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
 	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.14.0
 
 migrate: install-migrate-deps
 	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} up -v
+
+generate:
+	make generate-event-api
+
+generate-event-api:
+	mkdir -p pkg/event_v1
+	protoc --proto_path api/event_v1 \
+	--go_out=pkg/event_v1 --go_opt=paths=source_relative \
+	--plugin=protoc-gen-go=bin/protoc-gen-go \
+	--go-grpc_out=pkg/event_v1 --go-grpc_opt=paths=source_relative \
+	--plugin=protoc-gen-go-grpc=bin/protoc-gen-go-grpc \
+	api/event_v1/*.proto
