@@ -1,0 +1,14 @@
+env: "local" # local, dev, prod
+default_storage: "in-memory"
+database:
+  host: "localhost"
+  port: 54321
+  username: "calendar-user"
+  password: "calendar-password"
+  dbname: "calendar"
+
+http_server:
+  host: "localhost"
+  port: "8083"
+  timeout: 4s
+  idle_timeout: 60s

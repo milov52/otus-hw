@@ -1,23 +1,35 @@
+//nolint:depguard
 package main
 
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/joho/godotenv"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/app"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/storage/sql"
+)
+
+const (
+	inMemory = "in-memory"
+	sql      = "sql"
 )
 
 var configFile string
 
 func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "/etc/calendar/config.yaml", "Path to configuration file")
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
 }
 
 func main() {
@@ -28,13 +40,19 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	cfg := config.MustLoad(configFile)
+	logg := setupLogger(cfg.Env)
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	var storage app.Storage
+	switch cfg.DefaultStorage {
+	case inMemory:
+		storage = memorystorage.New()
+	case sql:
+		storage = sqlstorage.New()
+	}
+	calendar := app.New(*logg, storage)
 
-	server := internalhttp.NewServer(logg, calendar)
+	server := internalhttp.NewServer(*logg, *cfg, *calendar)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
