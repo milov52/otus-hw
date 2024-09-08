@@ -1,10 +1,10 @@
 package memorystorage
 
 import (
-	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"testing"
 	"time"
 
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"golang.org/x/net/context"
 )
 

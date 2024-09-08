@@ -5,7 +5,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"log/slog"
 	"net"
@@ -16,16 +15,16 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/server/http"
-	"google.golang.org/grpc"
-
 	"github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/memory"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/sql"
 	internalgrpc "github.com/milov52/hw12_13_14_15_calendar/internal/server/grpc"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/server/http"
 	sevent "github.com/milov52/hw12_13_14_15_calendar/internal/service/event"
 	desc "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -87,13 +86,15 @@ func main() {
 	conn, err := grpc.NewClient(
 		lis.Addr().String(),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
-
 	if err != nil {
 		slog.Error("failed to dial server", err)
 	}
 
 	mux := runtime.NewServeMux()
 	err = desc.RegisterCalendarHandler(context.Background(), mux, conn)
+	if err != nil {
+		slog.Error("failed to register calendar handler", err)
+	}
 
 	server := internalhttp.NewServer(*logg, *cfg)
 	ctx, cancel := signal.NotifyContext(context.Background(),

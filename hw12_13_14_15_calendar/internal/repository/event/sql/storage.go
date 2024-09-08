@@ -3,13 +3,13 @@ package sqlstorage
 import (
 	"context"
 	"fmt"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 )
 
 type Storage struct {
@@ -63,7 +63,6 @@ func (s *Storage) CreateEvent(ctx context.Context, event model.Event) (uuid.UUID
 
 	var eventID uuid.UUID
 	err = s.pool.QueryRow(ctx, query, args...).Scan(&eventID)
-
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("%s: %w", op, err)
 	}

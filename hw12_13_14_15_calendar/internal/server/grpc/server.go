@@ -1,14 +1,14 @@
 package internalgrpc
 
 import (
-	"github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	"log"
 	"log/slog"
 	"net"
 
+	"github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
 	desc "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type Server struct {

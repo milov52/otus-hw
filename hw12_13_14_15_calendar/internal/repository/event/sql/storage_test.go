@@ -2,13 +2,13 @@ package sqlstorage
 
 import (
 	"context"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"github.com/stretchr/testify/require"
 )
 

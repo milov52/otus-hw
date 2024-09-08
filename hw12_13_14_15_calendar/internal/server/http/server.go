@@ -2,11 +2,11 @@ package internalhttp
 
 import (
 	"context"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"log/slog"
 	"net"
 	"net/http"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 )
 

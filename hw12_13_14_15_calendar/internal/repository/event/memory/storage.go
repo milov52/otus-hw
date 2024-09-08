@@ -1,11 +1,11 @@
 package memorystorage
 
 import (
-	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"golang.org/x/net/context"
 )
 
