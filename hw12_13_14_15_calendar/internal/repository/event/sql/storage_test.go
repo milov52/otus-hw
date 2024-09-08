@@ -2,13 +2,13 @@ package sqlstorage
 
 import (
 	"context"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,7 +21,7 @@ func setupTestDB(ctx context.Context, t *testing.T) (*Storage, func()) {
 	}
 
 	// Определяем путь к корню проекта относительно текущей директории
-	rootDir := filepath.Join(cwd, "../../..") // поднимаемся на три уровня вверх
+	rootDir := filepath.Join(cwd, "../../../../") // поднимаемся на три уровня вверх
 	configPath := filepath.Join(rootDir, "configs", "config.yaml")
 
 	cfg := config.MustLoad(configPath)
@@ -35,7 +35,7 @@ func setupTestDB(ctx context.Context, t *testing.T) (*Storage, func()) {
 
 	// Миграция для создания таблицы
 	_, err = testStorage.pool.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS events (
+		CREATE TABLE IF NOT EXISTS event (
 			id UUID PRIMARY KEY NOT NULL,
 			title TEXT NOT NULL,
 			start_time TIMESTAMP NOT NULL,
@@ -48,7 +48,7 @@ func setupTestDB(ctx context.Context, t *testing.T) (*Storage, func()) {
 
 	// Функция очистки базы данных после тестов
 	cleanup := func() {
-		_, err := testStorage.pool.Exec(ctx, `DROP TABLE IF EXISTS events`)
+		_, err := testStorage.pool.Exec(ctx, `DROP TABLE IF EXISTS event`)
 		if err != nil {
 			panic("failed to cleanup test database: " + err.Error())
 		}
@@ -63,7 +63,7 @@ func TestStorage_CreateEvent(t *testing.T) {
 	testStorage, cleanup := setupTestDB(ctx, t)
 	defer cleanup()
 
-	event := storage.Event{
+	event := model.Event{
 		Title:       "Test Event",
 		StartTime:   time.Now(),
 		Duration:    time.Hour,
@@ -76,7 +76,7 @@ func TestStorage_CreateEvent(t *testing.T) {
 
 	// Проверка, что событие было сохранено
 	var count int
-	err = testStorage.pool.QueryRow(ctx, "SELECT COUNT(*) FROM events WHERE id = $1", eventID).Scan(&count)
+	err = testStorage.pool.QueryRow(ctx, "SELECT COUNT(*) FROM event WHERE id = $1", eventID).Scan(&count)
 	require.NoError(t, err, "unexpected error during event lookup")
 	require.Equal(t, 1, count, "expected exactly one event in the database")
 }
@@ -86,7 +86,7 @@ func TestStorage_UpdateEvent(t *testing.T) {
 	testStorage, cleanup := setupTestDB(ctx, t)
 	defer cleanup()
 
-	event := storage.Event{
+	event := model.Event{
 		Title:       "Initial Event",
 		StartTime:   time.Now(),
 		Duration:    time.Hour,
@@ -97,7 +97,7 @@ func TestStorage_UpdateEvent(t *testing.T) {
 	require.NoError(t, err, "unexpected error during event creation")
 
 	// Обновляем событие
-	updatedEvent := storage.Event{
+	updatedEvent := model.Event{
 		ID:          eventID,
 		Title:       "Updated Event",
 		StartTime:   event.StartTime.Add(2 * time.Hour),
@@ -119,7 +119,7 @@ func TestStorage_DeleteEvent(t *testing.T) {
 	testStorage, cleanup := setupTestDB(ctx, t)
 	defer cleanup()
 
-	event := storage.Event{
+	event := model.Event{
 		Title:       "Test Event",
 		StartTime:   time.Now(),
 		Duration:    time.Hour,
@@ -147,13 +147,13 @@ func TestStorage_GetEvents(t *testing.T) {
 	now := time.Date(2024, 8, 25, 0, 0, 0, 0, time.UTC)
 
 	// Создаем несколько событий
-	event1 := storage.Event{
+	event1 := model.Event{
 		Title:       "Event 1",
 		StartTime:   now,
 		Duration:    time.Hour,
 		Description: "First event",
 	}
-	event2 := storage.Event{
+	event2 := model.Event{
 		Title:       "Event 2",
 		StartTime:   now.AddDate(0, 0, 1), // Завтра
 		Duration:    2 * time.Hour,
