@@ -24,7 +24,7 @@ linters-settings:
           - github.com/ilyakaznacheev/cleanenv
           - github.com/milov52/hw12_13_14_15_calendar/internal/app
           - github.com/milov52/hw12_13_14_15_calendar/internal/config
-          - github.com/milov52/hw12_13_14_15_calendar/internal/storage
+          - github.com/milov52/hw12_13_14_15_calendar/internal/repository
 
 issues:
   exclude-rules:
