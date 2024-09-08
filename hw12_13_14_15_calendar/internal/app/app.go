@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
 )
 
 type App struct {
@@ -20,14 +20,11 @@ const (
 	MONTH = 31
 )
 
-type Logger interface { // TODO
-}
-
 type Storage interface {
-	CreateEvent(ctx context.Context, event storage.Event) (uuid.UUID, error)
-	UpdateEvent(ctx context.Context, id uuid.UUID, event storage.Event) error
+	CreateEvent(ctx context.Context, event model.Event) (uuid.UUID, error)
+	UpdateEvent(ctx context.Context, id uuid.UUID, event model.Event) error
 	DeleteEvent(ctx context.Context, id uuid.UUID) error
-	GetEvents(ctx context.Context, date time.Time, offset int) ([]storage.Event, error)
+	GetEvents(ctx context.Context, date time.Time, offset int) ([]model.Event, error)
 }
 
 func New(logger slog.Logger, storage Storage) *App {
@@ -37,7 +34,7 @@ func New(logger slog.Logger, storage Storage) *App {
 	}
 }
 
-func (a *App) CreateEvent(ctx context.Context, event storage.Event) error {
+func (a *App) CreateEvent(ctx context.Context, event model.Event) error {
 	id, err := a.storage.CreateEvent(ctx, event)
 	if err != nil {
 		a.logger.Error("failed create new event", "err", err)
@@ -48,7 +45,7 @@ func (a *App) CreateEvent(ctx context.Context, event storage.Event) error {
 	return nil
 }
 
-func (a *App) UpdateEvent(ctx context.Context, id uuid.UUID, event storage.Event) error {
+func (a *App) UpdateEvent(ctx context.Context, id uuid.UUID, event model.Event) error {
 	err := a.storage.UpdateEvent(ctx, id, event)
 	if err != nil {
 		a.logger.Error("failed update event", "err", err)
@@ -57,7 +54,7 @@ func (a *App) UpdateEvent(ctx context.Context, id uuid.UUID, event storage.Event
 	return nil
 }
 
-func (a *App) DeleteEvent(ctx context.Context, id uuid.UUID, event storage.Event) error {
+func (a *App) DeleteEvent(ctx context.Context, id uuid.UUID, event model.Event) error {
 	err := a.storage.DeleteEvent(ctx, id)
 	if err != nil {
 		a.logger.Error("failed delete event", "err", err)
@@ -66,7 +63,7 @@ func (a *App) DeleteEvent(ctx context.Context, id uuid.UUID, event storage.Event
 	return nil
 }
 
-func (a *App) DayEventList(ctx context.Context, date time.Time) ([]storage.Event, error) {
+func (a *App) DayEventList(ctx context.Context, date time.Time) ([]model.Event, error) {
 	eventList, err := a.storage.GetEvents(ctx, date, DAY)
 	if err != nil {
 		a.logger.Error("failed list event", "err", err)
@@ -75,7 +72,7 @@ func (a *App) DayEventList(ctx context.Context, date time.Time) ([]storage.Event
 	return eventList, nil
 }
 
-func (a *App) WeekEventList(ctx context.Context, startDate time.Time) ([]storage.Event, error) {
+func (a *App) WeekEventList(ctx context.Context, startDate time.Time) ([]model.Event, error) {
 	eventList, err := a.storage.GetEvents(ctx, startDate, WEEK)
 	if err != nil {
 		a.logger.Error("failed list event", "err", err)
@@ -84,7 +81,7 @@ func (a *App) WeekEventList(ctx context.Context, startDate time.Time) ([]storage
 	return eventList, nil
 }
 
-func (a *App) MonthEventList(ctx context.Context, startDate time.Time) ([]storage.Event, error) {
+func (a *App) MonthEventList(ctx context.Context, startDate time.Time) ([]model.Event, error) {
 	eventList, err := a.storage.GetEvents(ctx, startDate, MONTH)
 	if err != nil {
 		a.logger.Error("failed list event", "err", err)
