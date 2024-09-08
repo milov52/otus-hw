@@ -1,14 +1,14 @@
 -- +goose Up
 CREATE table event (
-                       id              serial primary key,
+                       id              UUID PRIMARY KEY,
                        title           text,
-                       start_time      timestamptz not null default now() unique,
+                       start_time      TIMESTAMP not null default now(),
                        duration        timestamptz,
                        description     text,
                        user_id         text,
                        notification    timestamptz,
-                       created_at      timestamptz not null default now(),
-                       updated_at      timestamptz
+                       created_at      TIMESTAMP not null default now(),
+                       updated_at      DATE
 );
 
 -- +goose Down
