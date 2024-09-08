@@ -4,18 +4,28 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"google.golang.org/grpc/credentials/insecure"
 	"log"
+	"log/slog"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/app"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/server/http"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/storage/memory"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/storage/sql"
+	"google.golang.org/grpc"
+
+	"github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/memory"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/sql"
+	internalgrpc "github.com/milov52/hw12_13_14_15_calendar/internal/server/grpc"
+	sevent "github.com/milov52/hw12_13_14_15_calendar/internal/service/event"
+	desc "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
 )
 
 const (
@@ -43,17 +53,49 @@ func main() {
 	cfg := config.MustLoad(configFile)
 	logg := setupLogger(cfg.Env)
 
-	var storage app.Storage
+	var storage sevent.Storage
+
 	switch cfg.DefaultStorage {
 	case inMemory:
 		storage = memorystorage.New()
 	case sql:
-		storage = sqlstorage.New()
+		sqlStorage := sqlstorage.New()
+		// Подключаемся к базе данных
+		ctx := context.Background()
+		if err := sqlStorage.Connect(ctx, *cfg); err != nil {
+			logg.Error("failed to connect to database: " + err.Error())
+			os.Exit(1)
+		}
+		storage = sqlStorage
+		defer sqlStorage.Close(ctx) // Закрываем соединение при завершении программы
 	}
-	calendar := app.New(*logg, storage)
 
-	server := internalhttp.NewServer(*logg, *cfg, *calendar)
+	calendarService := sevent.NewEventService(*logg, storage)
+	controller := event.NewEventServer(calendarService)
 
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.GRPCServer.Port)) // :82
+	if err != nil {
+		slog.Error("failed to listen: %v", err)
+	}
+
+	grpcServer := internalgrpc.NewServer(*logg, *controller)
+	err = grpcServer.Start(lis)
+	if err != nil {
+		slog.Error("grpc server error", err)
+	}
+
+	conn, err := grpc.NewClient(
+		lis.Addr().String(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	if err != nil {
+		slog.Error("failed to dial server", err)
+	}
+
+	mux := runtime.NewServeMux()
+	err = desc.RegisterCalendarHandler(context.Background(), mux, conn)
+
+	server := internalhttp.NewServer(*logg, *cfg)
 	ctx, cancel := signal.NotifyContext(context.Background(),
 		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
@@ -71,7 +113,7 @@ func main() {
 
 	logg.Info("calendar is running...")
 
-	if err := server.Start(ctx); err != nil {
+	if err := server.Start(mux); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1) //nolint:gocritic
