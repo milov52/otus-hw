@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package event;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/milov52/hw12_13_14_15_calendar/pkg/event/v1;event";
+
+service Calendar {
+  rpc CreateEvent(CreateRequest) returns (CreateResponse){
+    option (google.api.http) = {
+      post: "/v1/event"
+      body: "*"
+    };
+  };
+  rpc UpdateEvent(UpdateRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put:  "/v1/event/{UUID}"
+      body: "*"
+    };
+  };
+  rpc DeleteEvent(DeleteRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete:  "/v1/event/{UUID}"
+    };
+  };
+  rpc GetDayEventList(GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get:  "/v1/events/{date}"
+    };
+  };
+  rpc GetWeekEventList(GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get:  "/v1/events/{date}/week"
+    };
+  };
+  rpc GetMonthEventList(GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get:  "/v1/events/{date}/month"
+    };
+  };
+}
+
+message EventInfo {
+  string title = 2;
+  google.protobuf.Timestamp start_time = 3;
+  google.protobuf.Duration duration = 4;
+  string Description = 5;
+  string user_id = 6;
+  Notification notification = 7;
+}
+
+message Event {
+  string id = 1;
+  EventInfo event = 2;
+}
+
+message Notification {
+  string event_id = 1;
+  string title = 2;
+  google.protobuf.Timestamp date = 3;
+  string user_id = 4;
+}
+
+message CreateRequest {
+  EventInfo event = 1;
+}
+
+message CreateResponse {
+  string UUID = 1;
+}
+
+message UpdateRequest {
+  string UUID = 1;
+  EventInfo event = 2;
+}
+
+message DeleteRequest {
+  string UUID = 1;
+}
+
+message GetRequest {
+  google.protobuf.Timestamp date = 1;
+}
+
+message GetResponse {
+  repeated Event event = 2;
+}
