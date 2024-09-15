@@ -14,10 +14,10 @@ import (
 type Server struct {
 	grpcServer *grpc.Server
 	logger     slog.Logger
-	controller *event.Service
+	controller *event.Controller
 }
 
-func NewServer(logger slog.Logger, controller event.Service) *Server {
+func NewServer(logger slog.Logger, controller event.Controller) *Server {
 	return &Server{
 		logger:     logger,
 		grpcServer: grpc.NewServer(),
