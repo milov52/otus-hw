@@ -2,13 +2,13 @@ package event_test
 
 import (
 	"context"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	event2 "github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
