@@ -15,6 +15,9 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	"github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/memory"
@@ -23,8 +26,6 @@ import (
 	"github.com/milov52/hw12_13_14_15_calendar/internal/server/http"
 	sevent "github.com/milov52/hw12_13_14_15_calendar/internal/service/event"
 	desc "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -70,7 +71,7 @@ func main() {
 	}
 
 	calendarService := sevent.NewEventService(*logg, storage)
-	controller := event.NewEventServer(calendarService)
+	controller := event.NewEventController(calendarService)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.GRPCServer.Port)) // :82
 	if err != nil {
