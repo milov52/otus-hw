@@ -4,14 +4,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/converter/server"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
+	servicepb "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
-
-	"github.com/milov52/hw12_13_14_15_calendar/internal/converter/server"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
-	servicepb "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
 )
 
 var _ servicepb.CalendarServer = (*Controller)(nil)
