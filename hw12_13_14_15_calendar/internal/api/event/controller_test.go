@@ -2,6 +2,8 @@ package event_test
 
 import (
 	"context"
+	"log/slog"
+	"os"
 	"testing"
 	"time"
 
@@ -10,42 +12,44 @@ import (
 	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/service/event"
 	servicepb "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type MockEventService struct {
-	event.Service
+type MockStorage struct {
+	mock.Mock
 }
 
-func (m *MockEventService) CreateEvent(ctx context.Context, evt model.Event) (uuid.UUID, error) {
-	return uuid.New(), nil
+func (m *MockStorage) CreateEvent(ctx context.Context, evt model.Event) (uuid.UUID, error) {
+	args := m.Called(ctx, evt)
+	return args.Get(0).(uuid.UUID), args.Error(1)
 }
 
-func (m *MockEventService) UpdateEvent(ctx context.Context, id uuid.UUID, event model.Event) error {
-	return nil
+func (m *MockStorage) UpdateEvent(ctx context.Context, id uuid.UUID, evt model.Event) error {
+	args := m.Called(ctx, id, evt)
+	return args.Error(0)
 }
 
-func (m *MockEventService) DeleteEvent(ctx context.Context, id uuid.UUID) error {
-	return nil
+func (m *MockStorage) DeleteEvent(ctx context.Context, id uuid.UUID) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
 }
 
-func (m *MockEventService) DayEventList(ctx context.Context, date time.Time) ([]model.Event, error) {
-	return []model.Event{}, nil
-}
-
-func (m *MockEventService) WeekEventList(ctx context.Context, date time.Time) ([]model.Event, error) {
-	return []model.Event{}, nil
-}
-
-func (m *MockEventService) MonthEventList(ctx context.Context, date time.Time) ([]model.Event, error) {
-	return []model.Event{}, nil
+func (m *MockStorage) GetEvents(ctx context.Context, date time.Time, offset int) ([]model.Event, error) {
+	args := m.Called(ctx, date, offset)
+	return args.Get(0).([]model.Event), args.Error(1)
 }
 
 func TestCreateEventGRPC(t *testing.T) {
-	mockService := &MockEventService{}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	mockRepo := new(MockStorage)
+	mockService := event.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
+
+	mockRepo.On("CreateEvent", mock.Anything, mock.AnythingOfType("model.Event")).Return(uuid.New(), nil)
 
 	req := &servicepb.CreateRequest{
 		Event: &servicepb.EventInfo{
@@ -60,11 +64,18 @@ func TestCreateEventGRPC(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	require.NotEmpty(t, resp.UUID)
+
+	mockRepo.AssertExpectations(t)
 }
 
 func TestUpdateEventGRPC(t *testing.T) {
-	mockService := &MockEventService{}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	mockRepo := new(MockStorage)
+	mockService := event.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
+
+	mockRepo.On("UpdateEvent", mock.Anything, mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("model.Event")).Return(nil)
 
 	req := &servicepb.UpdateRequest{
 		UUID: uuid.New().String(),
@@ -77,11 +88,18 @@ func TestUpdateEventGRPC(t *testing.T) {
 
 	_, err := controller.UpdateEvent(context.Background(), req)
 	require.NoError(t, err)
+
+	mockRepo.AssertExpectations(t)
 }
 
 func TestDeleteEventGRPC(t *testing.T) {
-	mockService := &MockEventService{}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	mockRepo := new(MockStorage)
+	mockService := event.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
+
+	mockRepo.On("DeleteEvent", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(nil)
 
 	req := &servicepb.DeleteRequest{
 		UUID: uuid.New().String(),
@@ -89,11 +107,18 @@ func TestDeleteEventGRPC(t *testing.T) {
 
 	_, err := controller.DeleteEvent(context.Background(), req)
 	require.NoError(t, err)
+
+	mockRepo.AssertExpectations(t)
 }
 
 func TestDayEventList(t *testing.T) {
-	mockService := &MockEventService{}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	mockRepo := new(MockStorage)
+	mockService := event.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
+
+	mockRepo.On("GetEvents", mock.Anything, mock.AnythingOfType("time.Time"), mock.AnythingOfType("int")).Return([]model.Event{}, nil)
 
 	req := &servicepb.GetRequest{
 		Date: timestamppb.New(time.Now()),
@@ -102,4 +127,6 @@ func TestDayEventList(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, resp)
+
+	mockRepo.AssertExpectations(t)
 }
