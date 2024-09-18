@@ -49,7 +49,8 @@ func TestCreateEventGRPC(t *testing.T) {
 	mockService := event.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
 
-	mockRepo.On("CreateEvent", mock.Anything, mock.AnythingOfType("model.Event")).Return(uuid.New(), nil)
+	mockRepo.On("CreateEvent", mock.Anything,
+		mock.AnythingOfType("model.Event")).Return(uuid.New(), nil)
 
 	req := &servicepb.CreateRequest{
 		Event: &servicepb.EventInfo{
@@ -75,7 +76,8 @@ func TestUpdateEventGRPC(t *testing.T) {
 	mockService := event.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
 
-	mockRepo.On("UpdateEvent", mock.Anything, mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("model.Event")).Return(nil)
+	mockRepo.On("UpdateEvent", mock.Anything, mock.AnythingOfType("uuid.UUID"),
+		mock.AnythingOfType("model.Event")).Return(nil)
 
 	req := &servicepb.UpdateRequest{
 		UUID: uuid.New().String(),
@@ -99,7 +101,8 @@ func TestDeleteEventGRPC(t *testing.T) {
 	mockService := event.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
 
-	mockRepo.On("DeleteEvent", mock.Anything, mock.AnythingOfType("uuid.UUID")).Return(nil)
+	mockRepo.On("DeleteEvent", mock.Anything,
+		mock.AnythingOfType("uuid.UUID")).Return(nil)
 
 	req := &servicepb.DeleteRequest{
 		UUID: uuid.New().String(),
@@ -118,7 +121,8 @@ func TestDayEventList(t *testing.T) {
 	mockService := event.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
 
-	mockRepo.On("GetEvents", mock.Anything, mock.AnythingOfType("time.Time"), mock.AnythingOfType("int")).Return([]model.Event{}, nil)
+	mockRepo.On("GetEvents", mock.Anything,
+		mock.AnythingOfType("time.Time"), mock.AnythingOfType("int")).Return([]model.Event{}, nil)
 
 	req := &servicepb.GetRequest{
 		Date: timestamppb.New(time.Now()),
