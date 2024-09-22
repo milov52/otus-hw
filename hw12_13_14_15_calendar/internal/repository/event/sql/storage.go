@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/storage"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
 )
 
 type Storage struct {
@@ -47,10 +47,10 @@ func (s *Storage) generateID() string {
 	return uuid.New().String()
 }
 
-func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) (uuid.UUID, error) {
-	const op = "storage.sql.CreateEvent"
+func (s *Storage) CreateEvent(ctx context.Context, event model.Event) (uuid.UUID, error) {
+	const op = "repository.sql.CreateEvent"
 
-	builderInsert := sq.Insert("events").
+	builderInsert := sq.Insert("event").
 		PlaceholderFormat(sq.Dollar).
 		Columns("id", "title", "start_time", "description").
 		Values(s.generateID(), event.Title, event.StartTime, event.Description).
@@ -70,10 +70,10 @@ func (s *Storage) CreateEvent(ctx context.Context, event storage.Event) (uuid.UU
 	return eventID, nil
 }
 
-func (s *Storage) UpdateEvent(ctx context.Context, id uuid.UUID, event storage.Event) error {
-	const op = "storage.sql.UpdateEvent"
+func (s *Storage) UpdateEvent(ctx context.Context, id uuid.UUID, event model.Event) error {
+	const op = "repository.sql.UpdateEvent"
 
-	builderUpdate := sq.Update("events").
+	builderUpdate := sq.Update("event").
 		PlaceholderFormat(sq.Dollar).
 		Set("title", event.Title).
 		Set("start_time", event.StartTime).
@@ -94,9 +94,9 @@ func (s *Storage) UpdateEvent(ctx context.Context, id uuid.UUID, event storage.E
 }
 
 func (s *Storage) DeleteEvent(ctx context.Context, id uuid.UUID) error {
-	const op = "storage.sql.DeleteEvent"
+	const op = "repository.sql.DeleteEvent"
 
-	builderDelete := sq.Delete("events").
+	builderDelete := sq.Delete("event").
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{"id": id})
 
@@ -111,16 +111,16 @@ func (s *Storage) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]storage.Event, error) {
-	const op = "storage.sql.GetEvents"
+func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]model.Event, error) {
+	const op = "repository.sql.GetEvents"
 
 	startDate := date.Format(time.DateOnly)                     // Приводим к формату даты
 	endDate := date.AddDate(0, 0, offset).Format(time.DateOnly) // Конечная дата
 
 	builderSelect := sq.Select("id", "title", "start_time", "description").
-		From("events").
+		From("event").
 		PlaceholderFormat(sq.Dollar).
-		Where(sq.Expr("start_time BETWEEN ? AND ?", startDate, endDate))
+		Where(sq.Expr("start_time BETWEEN ? AND ?", startDate+" 00:00:00", endDate+" 23:59:59"))
 
 	query, args, err := builderSelect.ToSql()
 	if err != nil {
@@ -131,9 +131,9 @@ func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	defer rows.Close()
-	var events []storage.Event
+	var events []model.Event
 	for rows.Next() {
-		var event storage.Event
+		var event model.Event
 		if err := rows.Scan(&event.ID, &event.Title, &event.StartTime, &event.Description); err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}

@@ -1,5 +1,5 @@
 env: "local" # local, dev, prod
-default_storage: "in-memory"
+default_storage: "sql"
 database:
   host: "localhost"
   port: 54321
@@ -9,6 +9,10 @@ database:
 
 http_server:
   host: "localhost"
-  port: "8083"
+  port: "8081"
   timeout: 4s
   idle_timeout: 60s
+
+grpc_server:
+  host: "localhost"
+  port: "50051"

@@ -12,6 +12,7 @@ type Config struct {
 	Env            string     `yaml:"env" env-default:"local" env-required:"true"`
 	DefaultStorage string     `yaml:"default_storage" env-default:"in-memory" env-required:"true"`
 	HTTPServer     HTTPServer `yaml:"http_server"`
+	GRPCServer     GRPCServer `yaml:"grpc_server"`
 	Database       Database   `yaml:"database"`
 }
 
@@ -25,9 +26,14 @@ type Database struct {
 
 type HTTPServer struct {
 	Host        string        `yaml:"host" env-default:"localhost"`
-	Port        string        `yaml:"port" env-default:"8080"`
+	Port        string        `yaml:"port" env-default:"8081"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"60s"`
+}
+
+type GRPCServer struct {
+	Host string `yaml:"host" env-default:"localhost"`
+	Port string `yaml:"port" env-default:"50051"`
 }
 
 func MustLoad(configPath string) *Config {

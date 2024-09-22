@@ -6,17 +6,16 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/milov52/hw12_13_14_15_calendar/internal/app"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 )
 
 type Server struct {
 	httpServer *http.Server
 	logger     slog.Logger
-	app        app.App
 }
 
-func NewServer(logger slog.Logger, cfg config.Config, app app.App) *Server {
+func NewServer(logger slog.Logger, cfg config.Config) *Server {
 	return &Server{
 		logger: logger,
 		httpServer: &http.Server{
@@ -25,16 +24,10 @@ func NewServer(logger slog.Logger, cfg config.Config, app app.App) *Server {
 			WriteTimeout: cfg.HTTPServer.Timeout,
 			IdleTimeout:  cfg.HTTPServer.IdleTimeout,
 		},
-		app: app,
 	}
 }
 
-func (s *Server) Start(ctx context.Context) error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("hello"))
-	})
+func (s *Server) Start(mux *runtime.ServeMux) error {
 	s.httpServer.Handler = loggingMiddleware(mux)
 	s.logger.Info("starting http server with address", "address", s.httpServer.Addr)
 
