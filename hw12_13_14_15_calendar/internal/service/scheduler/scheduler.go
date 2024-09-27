@@ -10,6 +10,8 @@ import (
 
 type Storage interface {
 	GetNotifications(ctx context.Context, date time.Time) ([]model.Notification, error)
+	MarkEventsAsNotified(ctx context.Context, events []model.Notification) error
+	DeleteOldEvents(ctx context.Context) error
 }
 
 type QueueMessage interface {
@@ -38,6 +40,14 @@ func (s *Scheduler) Start(ctx context.Context, freq time.Duration) {
 	for range ticker.C {
 		s.processReminders(ctx)
 	}
+
+	deleteTicker := time.NewTicker(1 * time.Hour * 24)
+	for range deleteTicker.C {
+		err := s.storage.DeleteOldEvents(ctx)
+		if err != nil {
+			s.logger.Error("Failed to delete old events: %v", err)
+		}
+	}
 }
 
 func (s *Scheduler) processReminders(ctx context.Context) {
@@ -58,4 +68,12 @@ func (s *Scheduler) processReminders(ctx context.Context) {
 			s.logger.Error("Error sending message to queue: %v", err)
 		}
 	}
+	if len(notifications) > 0 {
+		err := s.storage.MarkEventsAsNotified(ctx, notifications)
+		if err != nil {
+			s.logger.Error("Error update sent: %v", err)
+		}
+
+	}
+
 }

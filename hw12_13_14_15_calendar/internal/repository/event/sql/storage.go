@@ -166,7 +166,6 @@ func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model
 		return nil, fmt.Errorf("%s: failed to build SQL query: %w", op, err)
 	}
 
-	// Выполняем запрос к базе данных
 	rows, err := s.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s: failed to execute query: %w", op, err)
@@ -175,7 +174,6 @@ func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model
 
 	var notifications []model.Notification
 
-	// Проход по результатам
 	for rows.Next() {
 		var notification model.Notification
 		if err := rows.Scan(&notification.EventID, &notification.Title, &notification.Date, &notification.UserID); err != nil {
@@ -189,4 +187,48 @@ func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model
 	}
 
 	return notifications, nil
+}
+
+func (s *Storage) MarkEventsAsNotified(ctx context.Context, notifications []model.Notification) error {
+	for _, notification := range notifications {
+		const op = "repository.sql.MarkSent"
+
+		builderUpdate := sq.Update("event").
+			PlaceholderFormat(sq.Dollar).
+			Set("sent", true).
+			Where(sq.Eq{"id": notification.EventID})
+
+		query, args, err := builderUpdate.ToSql()
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		_, err = s.pool.Exec(ctx, query, args...)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+	}
+	return nil
+}
+
+func (s *Storage) DeleteOldEvents(ctx context.Context) error {
+	const op = "repository.sql.DeleteOldEvents"
+
+	cutoffDate := time.Now().AddDate(-1, 0, 0)
+
+	builderDelete := sq.Delete("event").
+		PlaceholderFormat(sq.Dollar).
+		Where("start_time < ?", cutoffDate)
+
+	query, args, err := builderDelete.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: failed to build SQL query: %w", op, err)
+	}
+
+	_, err = s.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: failed to execute query: %w", op, err)
+	}
+
+	return nil
 }

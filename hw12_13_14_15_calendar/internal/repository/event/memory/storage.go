@@ -133,7 +133,7 @@ func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model
 				!event.Sent &&
 				event.StartTime.Add(-event.NotifyBefore).Before(date) {
 				notification := model.Notification{
-					EventID: event.ID.String(),
+					EventID: event.ID,
 					Title:   event.Title,
 					Date:    event.StartTime,
 					UserID:  event.UserID,
@@ -145,9 +145,10 @@ func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model
 	return notifications, nil
 }
 
-func (s *Storage) MarkEventsAsNotified(events []model.Event) {
-	for i, event := range events {
-		events[i].Sent = true
+func (s *Storage) MarkEventsAsNotified(ctx context.Context, notifications []model.Notification) error {
+	for _, n := range notifications {
+		event, _ := s.events[n.EventID]
+		event.Sent = true
 		dayKey := event.StartTime.Format(time.DateOnly)
 		if dayEvents, ok := s.byDay[dayKey]; ok {
 			for j, storedEvent := range dayEvents {
@@ -157,4 +158,32 @@ func (s *Storage) MarkEventsAsNotified(events []model.Event) {
 			}
 		}
 	}
+	return nil
+}
+
+func (s *Storage) DeleteOldEvents(ctx context.Context) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	cutoffDate := time.Now().AddDate(-1, 0, 0)
+
+	for dayKey, events := range s.byDay {
+		var remainingEvents []model.Event
+
+		for _, event := range events {
+			if event.StartTime.After(cutoffDate) {
+				remainingEvents = append(remainingEvents, event)
+			} else {
+				delete(s.events, event.ID)
+			}
+		}
+
+		if len(remainingEvents) > 0 {
+			s.byDay[dayKey] = remainingEvents
+		} else {
+			delete(s.byDay, dayKey)
+		}
+	}
+
+	return nil
 }
