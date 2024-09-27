@@ -13,11 +13,11 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 
 build:
 	go build -v -o $(LOCAL_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
-	go build -v -o $(LOCAL_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
-	go build -v -o $(LOCAL_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(LOCAL_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar_sender
+	go build -v -o $(LOCAL_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar_sheduler
 
 run: build
-	$(BIN) -config ./configs/config.yaml
+	$(BIN) -config configs/calendar_config.yaml
 
 build-img:
 	docker build \
