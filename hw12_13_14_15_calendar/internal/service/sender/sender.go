@@ -22,15 +22,13 @@ func NewSender(logger slog.Logger, queue QueueMessage) *Sender {
 }
 
 func (s *Sender) ReadMessages() {
-	//var forever chan struct{}
-
 	messages, err := s.queue.Receive()
 	if err != nil {
-		s.logger.Error("Failed to receive messages: %v", err)
+		s.logger.Error("Received message", "err", err)
 	}
 
 	for msg := range messages {
-		s.logger.Info("Received message: %s", msg)
+		s.logger.Info("Received message", "msg", msg)
+
 	}
-	//<-forever
 }

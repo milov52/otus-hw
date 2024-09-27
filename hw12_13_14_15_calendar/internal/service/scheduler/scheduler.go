@@ -60,7 +60,7 @@ func (s *Scheduler) processReminders(ctx context.Context) {
 	}
 
 	for _, n := range notifications {
-		msg := fmt.Sprintf("Notification to User: %s, Event ID: %d, Title: %s, Notify At: %s",
+		msg := fmt.Sprintf("Notification to User: %s, Event ID: %s, Title: %s, Notify At: %s",
 			n.UserID, n.EventID, n.Title, n.Date)
 
 		err := s.queue.Send(msg)

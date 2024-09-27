@@ -33,6 +33,12 @@ linters-settings:
           - github.com/milov52/hw12_13_14_15_calendar/internal/model
           - github.com/milov52/hw12_13_14_15_calendar/internal/repository
           - github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1
+          - github.com/rabbitmq/amqp091-go
+          - github.com/milov52/hw12_13_14_15_calendar/internal/logger
+          - github.com/milov52/hw12_13_14_15_calendar/internal/queue/rabbitmq
+          - github.com/milov52/hw12_13_14_15_calendar/internal/service/sender
+          - github.com/milov52/hw12_13_14_15_calendar/internal/service/scheduler
+          - github.com/milov52/hw12_13_14_15_calendar/internal/service/calendar
 
 issues:
   exclude-rules:
