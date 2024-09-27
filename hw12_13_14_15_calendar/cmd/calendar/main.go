@@ -12,11 +12,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/milov52/hw12_13_14_15_calendar/internal/logger"
-
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/logger"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/memory"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/sql"
 	internalgrpc "github.com/milov52/hw12_13_14_15_calendar/internal/server/grpc"
