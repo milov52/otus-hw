@@ -74,6 +74,5 @@ func (s *Scheduler) processReminders(ctx context.Context) {
 		if err != nil {
 			s.logger.Error("Error update sent: %v", err)
 		}
-
 	}
 }
