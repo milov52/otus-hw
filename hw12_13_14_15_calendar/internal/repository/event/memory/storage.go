@@ -147,7 +147,7 @@ func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model
 
 func (s *Storage) MarkEventsAsNotified(ctx context.Context, notifications []model.Notification) error {
 	for _, n := range notifications {
-		event, _ := s.events[n.EventID]
+		event := s.events[n.EventID]
 		event.Sent = true
 		dayKey := event.StartTime.Format(time.DateOnly)
 		if dayEvents, ok := s.byDay[dayKey]; ok {

@@ -15,7 +15,8 @@ type Queue struct {
 }
 
 func NewQueue(cfg *config.Config) (*Queue, error) {
-	amqpConnectionString := fmt.Sprintf("amqp://%s:%s@%s:%s/", cfg.RabbitMQ.Username, cfg.RabbitMQ.Password, cfg.RabbitMQ.Host, cfg.RabbitMQ.Port)
+	amqpConnectionString := fmt.Sprintf("amqp://%s:%s@%s:%s/",
+		cfg.RabbitMQ.Username, cfg.RabbitMQ.Password, cfg.RabbitMQ.Host, cfg.RabbitMQ.Port)
 	conn, err := amqp.Dial(amqpConnectionString)
 	if err != nil {
 		return nil, err
@@ -34,6 +35,9 @@ func NewQueue(cfg *config.Config) (*Queue, error) {
 		false,           // no-wait
 		nil,             // arguments
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Queue{
 		connection: conn,
@@ -42,7 +46,6 @@ func NewQueue(cfg *config.Config) (*Queue, error) {
 	}, nil
 }
 
-// Send отправка события в очередь
 func (q *Queue) Send(msg string) error {
 	err := q.channel.Publish(
 		"",           // Exchange

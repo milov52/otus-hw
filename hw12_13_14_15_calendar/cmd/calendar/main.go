@@ -5,13 +5,14 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/logger"
 	"log/slog"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/milov52/hw12_13_14_15_calendar/internal/logger"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/api/event"

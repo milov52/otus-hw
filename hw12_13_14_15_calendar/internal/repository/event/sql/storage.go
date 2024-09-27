@@ -53,7 +53,8 @@ func (s *Storage) CreateEvent(ctx context.Context, event model.Event) (uuid.UUID
 	builderInsert := sq.Insert("event").
 		PlaceholderFormat(sq.Dollar).
 		Columns("id", "title", "start_time", "description", "duration", "notify_before", "user_id").
-		Values(s.generateID(), event.Title, event.StartTime, event.Description, event.Duration, event.NotifyBefore, event.UserID).
+		Values(s.generateID(), event.Title, event.StartTime, event.Description,
+			event.Duration, event.NotifyBefore, event.UserID).
 		Suffix("RETURNING id")
 
 	query, args, err := builderInsert.ToSql()
@@ -173,7 +174,8 @@ func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model
 
 	for rows.Next() {
 		var notification model.Notification
-		if err := rows.Scan(&notification.EventID, &notification.Title, &notification.Date, &notification.UserID); err != nil {
+		err := rows.Scan(&notification.EventID, &notification.Title, &notification.Date, &notification.UserID)
+		if err != nil {
 			return nil, fmt.Errorf("%s: failed to scan row: %w", op, err)
 		}
 		notifications = append(notifications, notification)
