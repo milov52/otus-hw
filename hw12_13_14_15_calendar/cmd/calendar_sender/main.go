@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/logger"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/queue/rabbitmq"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/service/sender"
-	"os"
 )
 
 var configFile string

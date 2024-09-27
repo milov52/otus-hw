@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"os"
+
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/logger"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/queue/rabbitmq"
@@ -9,7 +11,6 @@ import (
 	sqlstorage "github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/sql"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/service/scheduler"
 	"golang.org/x/net/context"
-	"os"
 )
 
 const (
