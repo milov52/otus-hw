@@ -2,10 +2,11 @@ package scheduler
 
 import (
 	"fmt"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
-	"golang.org/x/net/context"
 	"log/slog"
 	"time"
+
+	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
+	"golang.org/x/net/context"
 )
 
 type Storage interface {
@@ -75,5 +76,4 @@ func (s *Scheduler) processReminders(ctx context.Context) {
 		}
 
 	}
-
 }

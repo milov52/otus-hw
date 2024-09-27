@@ -20,9 +20,14 @@ const (
 var configFile string
 
 func main() {
-	flag.Parse()
 	flag.StringVar(&configFile, "config", "configs/calendar_config.yaml", "Path to configuration file")
+	flag.Parse()
 
+	code := run()
+	os.Exit(code)
+}
+
+func run() int {
 	cfg := config.MustLoad(configFile)
 	logg := logger.SetupLogger(cfg.Env)
 
@@ -33,21 +38,25 @@ func main() {
 		storage = memorystorage.New()
 	case sql:
 		sqlStorage := sqlstorage.New()
-		// Подключаемся к базе данных
 		ctx := context.Background()
+
 		if err := sqlStorage.Connect(ctx, *cfg); err != nil {
 			logg.Error("failed to connect to database: " + err.Error())
-			os.Exit(1)
+			return 1 // Возвращаем код ошибки, чтобы завершить программу
 		}
+
 		storage = sqlStorage
-		defer sqlStorage.Close(ctx) // Закрываем соединение при завершении программы
+		defer sqlStorage.Close(ctx) // Убеждаемся, что соединение закроется
 	}
 
 	eventQueue, err := queue.NewQueue(cfg)
 	if err != nil {
 		logg.Error("failed to create queue: " + err.Error())
-		os.Exit(1)
+		return 1 // Возвращаем код ошибки, чтобы завершить программу
 	}
+
 	eventScheduler := scheduler.NewScheduler(*logg, storage, eventQueue)
 	eventScheduler.Start(context.Background(), cfg.Scheduler.LaunchFrequency)
+
+	return 0
 }

@@ -29,6 +29,5 @@ func (s *Sender) ReadMessages() {
 
 	for msg := range messages {
 		s.logger.Info("Received message", "msg", msg)
-
 	}
 }

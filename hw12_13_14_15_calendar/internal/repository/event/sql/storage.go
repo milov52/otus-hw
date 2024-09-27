@@ -148,10 +148,8 @@ func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]
 func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model.Notification, error) {
 	const op = "repository.sql.GetNotifications"
 
-	// Преобразуем time.Time в строку в формате "YYYY-MM-DD HH:MM:SS"
 	dateString := date.Format("2006-01-02 15:04:05")
 
-	// Построение SQL-запроса с использованием правильных интервалов и дат
 	builderSelect := sq.Select("id", "title", "start_time", "user_id").
 		From("event").
 		PlaceholderFormat(sq.Dollar).
@@ -160,7 +158,6 @@ func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model
 		Where("start_time - notify_before <= ?", dateString). // Здесь SQL обработает вычитание интервала
 		Where("start_time > ?", dateString)
 
-	// Преобразуем запрос в SQL строку
 	query, args, err := builderSelect.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("%s: failed to build SQL query: %w", op, err)

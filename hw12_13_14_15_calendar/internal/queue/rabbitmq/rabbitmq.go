@@ -2,19 +2,18 @@ package queue
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
 )
 
-// Queue структура для очереди сообщений
 type Queue struct {
 	connection *amqp.Connection
 	channel    *amqp.Channel
 	queue      *amqp.Queue
 }
 
-// NewQueue инициализация подключения к очереди
 func NewQueue(cfg *config.Config) (*Queue, error) {
 	amqpConnectionString := fmt.Sprintf("amqp://%s:%s@%s:%s/", cfg.RabbitMQ.Username, cfg.RabbitMQ.Password, cfg.RabbitMQ.Host, cfg.RabbitMQ.Port)
 	conn, err := amqp.Dial(amqpConnectionString)
@@ -54,7 +53,6 @@ func (q *Queue) Send(msg string) error {
 			ContentType: "text/plain",
 			Body:        []byte(msg),
 		})
-
 	if err != nil {
 		log.Printf("Failed to publish a message: %v", err)
 		return err
@@ -74,7 +72,6 @@ func (q *Queue) Receive() (<-chan string, error) {
 		false,        // No-wait
 		nil,          // Args
 	)
-
 	if err != nil {
 		log.Printf("Failed to register a consumer: %v", err)
 	}
