@@ -19,12 +19,13 @@ type Event struct {
 	Duration     time.Duration
 	Description  string
 	UserID       string
-	Notification *Notification
+	NotifyBefore time.Duration
+	Sent         bool
 }
 
 type Notification struct {
-	EventID string
-	Title   string
-	Date    time.Time
-	UserID  string
+	EventID string    `json:"event_id"`
+	Title   string    `json:"title"`
+	Date    time.Time `json:"date"`
+	UserID  string    `json:"user_id"`
 }

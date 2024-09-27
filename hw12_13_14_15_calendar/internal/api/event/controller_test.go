@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	event2 "github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/model"
-	"github.com/milov52/hw12_13_14_15_calendar/internal/service/event"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/service/calendar"
 	servicepb "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -46,7 +46,7 @@ func TestCreateEventGRPC(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	mockRepo := new(MockStorage)
-	mockService := event.NewEventService(*logger, mockRepo)
+	mockService := calendar.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
 
 	mockRepo.On("CreateEvent", mock.Anything,
@@ -73,7 +73,7 @@ func TestUpdateEventGRPC(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	mockRepo := new(MockStorage)
-	mockService := event.NewEventService(*logger, mockRepo)
+	mockService := calendar.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
 
 	mockRepo.On("UpdateEvent", mock.Anything, mock.AnythingOfType("uuid.UUID"),
@@ -98,7 +98,7 @@ func TestDeleteEventGRPC(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	mockRepo := new(MockStorage)
-	mockService := event.NewEventService(*logger, mockRepo)
+	mockService := calendar.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
 
 	mockRepo.On("DeleteEvent", mock.Anything,
@@ -118,7 +118,7 @@ func TestDayEventList(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	mockRepo := new(MockStorage)
-	mockService := event.NewEventService(*logger, mockRepo)
+	mockService := calendar.NewEventService(*logger, mockRepo)
 	controller := event2.NewEventController(mockService)
 
 	mockRepo.On("GetEvents", mock.Anything,

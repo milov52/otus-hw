@@ -120,3 +120,41 @@ func (s *Storage) GetEvents(ctx context.Context, startDate time.Time, offset int
 	}
 	return events, nil
 }
+
+func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model.Notification, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var notifications []model.Notification
+	dayKey := date.Format(time.DateOnly)
+	if dayEvents, ok := s.byDay[dayKey]; ok {
+		for _, event := range dayEvents {
+			if event.NotifyBefore != 0 &&
+				!event.Sent &&
+				event.StartTime.Add(-event.NotifyBefore).Before(date) {
+				notification := model.Notification{
+					EventID: event.ID.String(),
+					Title:   event.Title,
+					Date:    event.StartTime,
+					UserID:  event.UserID,
+				}
+				notifications = append(notifications, notification)
+			}
+		}
+	}
+	return notifications, nil
+}
+
+func (s *Storage) MarkEventsAsNotified(events []model.Event) {
+	for i, event := range events {
+		events[i].Sent = true
+		dayKey := event.StartTime.Format(time.DateOnly)
+		if dayEvents, ok := s.byDay[dayKey]; ok {
+			for j, storedEvent := range dayEvents {
+				if storedEvent.ID == event.ID {
+					s.byDay[dayKey][j].Sent = true
+				}
+			}
+		}
+	}
+}

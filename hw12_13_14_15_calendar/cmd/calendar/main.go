@@ -5,7 +5,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
+	"github.com/milov52/hw12_13_14_15_calendar/internal/logger"
 	"log/slog"
 	"net"
 	"os"
@@ -14,14 +14,13 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/joho/godotenv"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/api/event"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/config"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/memory"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/repository/event/sql"
 	internalgrpc "github.com/milov52/hw12_13_14_15_calendar/internal/server/grpc"
 	"github.com/milov52/hw12_13_14_15_calendar/internal/server/http"
-	sevent "github.com/milov52/hw12_13_14_15_calendar/internal/service/event"
+	sevent "github.com/milov52/hw12_13_14_15_calendar/internal/service/calendar"
 	desc "github.com/milov52/hw12_13_14_15_calendar/pkg/api/event/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -34,23 +33,16 @@ const (
 
 var configFile string
 
-func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.yaml", "Path to configuration file")
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found")
-	}
-}
-
 func main() {
 	flag.Parse()
-
+	flag.StringVar(&configFile, "config", "configs/calendar_config.yaml", "Path to configuration file")
 	if flag.Arg(0) == "version" {
 		printVersion()
 		return
 	}
 
 	cfg := config.MustLoad(configFile)
-	logg := setupLogger(cfg.Env)
+	logg := logger.SetupLogger(cfg.Env)
 
 	var storage sevent.Storage
 

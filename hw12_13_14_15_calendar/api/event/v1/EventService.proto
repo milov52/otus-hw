@@ -13,7 +13,7 @@ service Calendar {
   rpc CreateEvent(CreateRequest) returns (CreateResponse){
     option (google.api.http) = {
       post: "/v1/event"
-      body: "*"
+      body: "event"
     };
   };
   rpc UpdateEvent(UpdateRequest) returns (google.protobuf.Empty) {
@@ -48,21 +48,15 @@ message EventInfo {
   string title = 2;
   google.protobuf.Timestamp start_time = 3;
   google.protobuf.Duration duration = 4;
-  string Description = 5;
+  string description = 5;
   string user_id = 6;
-  Notification notification = 7;
+  google.protobuf.Duration notify_before  = 7;
+  bool sent = 8;
 }
 
 message Event {
   string id = 1;
   EventInfo event = 2;
-}
-
-message Notification {
-  string event_id = 1;
-  string title = 2;
-  google.protobuf.Timestamp date = 3;
-  string user_id = 4;
 }
 
 message CreateRequest {
@@ -87,5 +81,5 @@ message GetRequest {
 }
 
 message GetResponse {
-  repeated Event event = 2;
+  repeated Event events = 1;
 }

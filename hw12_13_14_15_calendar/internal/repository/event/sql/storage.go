@@ -52,8 +52,8 @@ func (s *Storage) CreateEvent(ctx context.Context, event model.Event) (uuid.UUID
 
 	builderInsert := sq.Insert("event").
 		PlaceholderFormat(sq.Dollar).
-		Columns("id", "title", "start_time", "description").
-		Values(s.generateID(), event.Title, event.StartTime, event.Description).
+		Columns("id", "title", "start_time", "description", "duration", "notify_before", "user_id").
+		Values(s.generateID(), event.Title, event.StartTime, event.Description, event.Duration, event.NotifyBefore, event.UserID).
 		Suffix("RETURNING id")
 
 	query, args, err := builderInsert.ToSql()
@@ -143,4 +143,50 @@ func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	return events, nil
+}
+
+func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model.Notification, error) {
+	const op = "repository.sql.GetNotifications"
+
+	// Преобразуем time.Time в строку в формате "YYYY-MM-DD HH:MM:SS"
+	dateString := date.Format("2006-01-02 15:04:05")
+
+	// Построение SQL-запроса с использованием правильных интервалов и дат
+	builderSelect := sq.Select("id", "title", "start_time", "user_id").
+		From("event").
+		PlaceholderFormat(sq.Dollar).
+		Where("notify_before IS NOT NULL").
+		Where("sent = FALSE").
+		Where("start_time - notify_before <= ?", dateString). // Здесь SQL обработает вычитание интервала
+		Where("start_time > ?", dateString)
+
+	// Преобразуем запрос в SQL строку
+	query, args, err := builderSelect.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to build SQL query: %w", op, err)
+	}
+
+	// Выполняем запрос к базе данных
+	rows, err := s.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to execute query: %w", op, err)
+	}
+	defer rows.Close()
+
+	var notifications []model.Notification
+
+	// Проход по результатам
+	for rows.Next() {
+		var notification model.Notification
+		if err := rows.Scan(&notification.EventID, &notification.Title, &notification.Date, &notification.UserID); err != nil {
+			return nil, fmt.Errorf("%s: failed to scan row: %w", op, err)
+		}
+		notifications = append(notifications, notification)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: rows iteration error: %w", op, err)
+	}
+
+	return notifications, nil
 }

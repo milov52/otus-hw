@@ -13,6 +13,8 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 
 build:
 	go build -v -o $(LOCAL_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(LOCAL_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(LOCAL_BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
 
 run: build
 	$(BIN) -config ./configs/config.yaml
