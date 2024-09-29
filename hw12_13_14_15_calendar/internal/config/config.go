@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -14,6 +15,8 @@ type Config struct {
 	HTTPServer     HTTPServer `yaml:"http_server"`
 	GRPCServer     GRPCServer `yaml:"grpc_server"`
 	Database       Database   `yaml:"database"`
+	RabbitMQ       RabbitMQ   `yaml:"rabbitmq"`
+	Scheduler      Scheduler  `yaml:"scheduler"`
 }
 
 type Database struct {
@@ -36,10 +39,23 @@ type GRPCServer struct {
 	Port string `yaml:"port" env-default:"50051"`
 }
 
+type RabbitMQ struct {
+	Host     string `yaml:"host" env-default:"localhost"`
+	Port     string `yaml:"port" env-default:"5672"`
+	Username string `yaml:"username" env-required:"true"`
+	Password string `yaml:"password" env-required:"true"`
+}
+
+type Scheduler struct {
+	LaunchFrequency time.Duration `yaml:"launch_frequency" env-default:"1m"`
+}
+
 func MustLoad(configPath string) *Config {
 	if configPath == "" {
 		log.Fatal("CONFIG_PATH environment variable not set")
 	}
+	dir, _ := os.Getwd()
+	fmt.Println(dir)
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		log.Fatal("config file does not exist")

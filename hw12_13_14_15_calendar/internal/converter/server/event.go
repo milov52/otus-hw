@@ -8,20 +8,14 @@ import (
 )
 
 func EventFromReq(event *desc.EventInfo) (*model.Event, error) {
-	notification := &model.Notification{
-		EventID: event.GetNotification().GetEventId(),
-		Title:   event.GetNotification().GetTitle(),
-		Date:    event.GetNotification().GetDate().AsTime(),
-		UserID:  event.GetNotification().GetUserId(),
-	}
-
 	return &model.Event{
 		Title:        event.GetTitle(),
 		StartTime:    event.GetStartTime().AsTime(),
 		Duration:     event.GetDuration().AsDuration(),
 		Description:  event.GetDescription(),
 		UserID:       event.GetUserId(),
-		Notification: notification,
+		NotifyBefore: event.GetNotifyBefore().AsDuration(),
+		Sent:         event.GetSent(),
 	}, nil
 }
 
@@ -34,7 +28,8 @@ func EventToResp(e model.Event) *desc.Event {
 			Duration:     durationpb.New(e.Duration),
 			Description:  e.Description,
 			UserId:       e.UserID,
-			Notification: nil,
+			NotifyBefore: durationpb.New(e.NotifyBefore),
+			Sent:         e.Sent,
 		},
 	}
 }
@@ -42,7 +37,7 @@ func EventToResp(e model.Event) *desc.Event {
 func EventsToResp(es []model.Event) *desc.GetResponse {
 	resp := &desc.GetResponse{}
 	for _, e := range es {
-		resp.Event = append(resp.Event, EventToResp(e))
+		resp.Events = append(resp.Events, EventToResp(e))
 	}
 	return resp
 }

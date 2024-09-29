@@ -19,11 +19,12 @@ type Event struct {
 	Duration     time.Duration
 	Description  string
 	UserID       string
-	Notification *Notification
+	NotifyBefore time.Duration
+	Sent         bool
 }
 
 type Notification struct {
-	EventID string
+	EventID uuid.UUID
 	Title   string
 	Date    time.Time
 	UserID  string

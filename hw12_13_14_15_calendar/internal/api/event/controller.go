@@ -34,7 +34,8 @@ func NewEventController(eventService EventService) *Controller {
 }
 
 func (c *Controller) CreateEvent(ctx context.Context, req *servicepb.CreateRequest) (*servicepb.CreateResponse, error) {
-	eventDTO, err := server.EventFromReq(req.GetEvent())
+	r := req.GetEvent()
+	eventDTO, err := server.EventFromReq(r)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid req: %v", err)
 	}

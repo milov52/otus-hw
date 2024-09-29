@@ -52,8 +52,9 @@ func (s *Storage) CreateEvent(ctx context.Context, event model.Event) (uuid.UUID
 
 	builderInsert := sq.Insert("event").
 		PlaceholderFormat(sq.Dollar).
-		Columns("id", "title", "start_time", "description").
-		Values(s.generateID(), event.Title, event.StartTime, event.Description).
+		Columns("id", "title", "start_time", "description", "duration", "notify_before", "user_id").
+		Values(s.generateID(), event.Title, event.StartTime, event.Description,
+			event.Duration, event.NotifyBefore, event.UserID).
 		Suffix("RETURNING id")
 
 	query, args, err := builderInsert.ToSql()
@@ -143,4 +144,90 @@ func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	return events, nil
+}
+
+func (s *Storage) GetNotifications(ctx context.Context, date time.Time) ([]model.Notification, error) {
+	const op = "repository.sql.GetNotifications"
+
+	dateString := date.Format("2006-01-02 15:04:05")
+
+	builderSelect := sq.Select("id", "title", "start_time", "user_id").
+		From("event").
+		PlaceholderFormat(sq.Dollar).
+		Where("notify_before IS NOT NULL").
+		Where("sent = FALSE").
+		Where("start_time - notify_before <= ?", dateString). // Здесь SQL обработает вычитание интервала
+		Where("start_time > ?", dateString)
+
+	query, args, err := builderSelect.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to build SQL query: %w", op, err)
+	}
+
+	rows, err := s.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to execute query: %w", op, err)
+	}
+	defer rows.Close()
+
+	var notifications []model.Notification
+
+	for rows.Next() {
+		var notification model.Notification
+		err := rows.Scan(&notification.EventID, &notification.Title, &notification.Date, &notification.UserID)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to scan row: %w", op, err)
+		}
+		notifications = append(notifications, notification)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: rows iteration error: %w", op, err)
+	}
+
+	return notifications, nil
+}
+
+func (s *Storage) MarkEventsAsNotified(ctx context.Context, notifications []model.Notification) error {
+	for _, notification := range notifications {
+		const op = "repository.sql.MarkSent"
+
+		builderUpdate := sq.Update("event").
+			PlaceholderFormat(sq.Dollar).
+			Set("sent", true).
+			Where(sq.Eq{"id": notification.EventID})
+
+		query, args, err := builderUpdate.ToSql()
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		_, err = s.pool.Exec(ctx, query, args...)
+		if err != nil {
+			return fmt.Errorf("%s: %w", op, err)
+		}
+	}
+	return nil
+}
+
+func (s *Storage) DeleteOldEvents(ctx context.Context) error {
+	const op = "repository.sql.DeleteOldEvents"
+
+	cutoffDate := time.Now().AddDate(-1, 0, 0)
+
+	builderDelete := sq.Delete("event").
+		PlaceholderFormat(sq.Dollar).
+		Where("start_time < ?", cutoffDate)
+
+	query, args, err := builderDelete.ToSql()
+	if err != nil {
+		return fmt.Errorf("%s: failed to build SQL query: %w", op, err)
+	}
+
+	_, err = s.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("%s: failed to execute query: %w", op, err)
+	}
+
+	return nil
 }

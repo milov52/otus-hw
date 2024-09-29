@@ -16,3 +16,12 @@ http_server:
 grpc_server:
   host: "localhost"
   port: "50051"
+
+rabbitmq:
+  host: "localhost"
+  port: "5672"
+  username: "guest"
+  password: "guest"
+
+scheduler:
+  launch_frequency: 5s
