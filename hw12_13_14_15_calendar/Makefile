@@ -123,3 +123,9 @@ migrate:
 
 migrate-down:
 	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} down -v
+
+up:
+	docker-compose up  --remove-orphans --build
+
+down:
+	docker-compose down
