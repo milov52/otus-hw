@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  calendar_app:
+    depends_on:
+      - migrator
+    build:
+      context: .
+      dockerfile: build/Dockerfile_calendar
+    ports:
+      - "8888:8080"
+    networks:
+      - calendar
+
+  sender:
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: build/Dockerfile_sender
+    networks:
+      - calendar
+
+  scheduler:
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: build/Dockerfile_scheduler
+    networks:
+      - calendar
+
+  migrator:
+    depends_on:
+      - pg
+    build:
+      context: .
+      dockerfile: build/migration.Dockerfile
+    restart: on-failure
+    networks:
+      - calendar
+
+  pg:
+    restart: always
+    image: postgres:latest
+    environment:
+      - "POSTGRES_DB=${PG_DATABASE_NAME}"
+      - "POSTGRES_USER=${PG_USER}"
+      - "POSTGRES_PASSWORD=${PG_PASSWORD}"
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./internal/pg/data:/var/lib/postgresql/data
+    networks:
+      - calendar
+
+  rabbitmq:
+    image: rabbitmq:3.13.3-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15675:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 15s
+      timeout: 15s
+      retries: 10
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+    networks:
+      - calendar
+
+
+networks:
+  calendar:
+    name: calendar
