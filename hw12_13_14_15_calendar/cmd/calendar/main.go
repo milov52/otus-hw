@@ -34,8 +34,9 @@ const (
 var configFile string
 
 func main() {
-	flag.Parse()
 	flag.StringVar(&configFile, "config", "configs/calendar_config.yaml", "Path to configuration file")
+	flag.Parse()
+
 	if flag.Arg(0) == "version" {
 		printVersion()
 		return
