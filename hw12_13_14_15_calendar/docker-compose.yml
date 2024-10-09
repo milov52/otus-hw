@@ -1,46 +1,48 @@
 version: '3.8'
 
+networks:
+  rabbit:
+    driver: bridge
+  db:
+    driver: bridge
+
 services:
   calendar_app:
+    build: cmd/calendar
     depends_on:
       - migrator
-    build:
-      context: .
-      dockerfile: build/Dockerfile_calendar
     ports:
       - "8888:8080"
+    expose:
+      - 8888
     networks:
-      - calendar
+      - db
 
   sender:
+    build: cmd/calendar_sender
     depends_on:
       rabbitmq:
         condition: service_healthy
-    build:
-      context: .
-      dockerfile: build/Dockerfile_sender
     networks:
-      - calendar
+      - db
+      - rabbit
 
   scheduler:
+    build: cmd/calendar_sheduler
     depends_on:
       rabbitmq:
         condition: service_healthy
-    build:
-      context: .
-      dockerfile: build/Dockerfile_scheduler
     networks:
-      - calendar
+      - db
+      - rabbit
 
   migrator:
+    build: migrations
     depends_on:
       - pg
-    build:
-      context: .
-      dockerfile: build/migration.Dockerfile
     restart: on-failure
     networks:
-      - calendar
+      - db
 
   pg:
     restart: always
@@ -54,7 +56,7 @@ services:
     volumes:
       - ./internal/pg/data:/var/lib/postgresql/data
     networks:
-      - calendar
+      - db
 
   rabbitmq:
     image: rabbitmq:3.13.3-management
@@ -70,9 +72,4 @@ services:
     volumes:
       - ./rabbitmq:/var/lib/rabbitmq
     networks:
-      - calendar
-
-
-networks:
-  calendar:
-    name: calendar
+      - rabbit
