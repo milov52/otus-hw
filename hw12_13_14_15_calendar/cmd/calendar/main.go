@@ -46,7 +46,7 @@ func main() {
 	case inMemory:
 		storage = memorystorage.New()
 	case sql:
-		sqlStorage := sqlstorage.New()
+		sqlStorage := sqlstorage.New(nil)
 		// Подключаемся к базе данных
 		ctx := context.Background()
 		if err := sqlStorage.Connect(ctx, *cfg); err != nil {
