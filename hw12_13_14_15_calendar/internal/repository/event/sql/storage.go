@@ -16,9 +16,9 @@ type Storage struct {
 	pool *pgxpool.Pool
 }
 
-func New() *Storage {
+func New(pool *pgxpool.Pool) *Storage {
 	return &Storage{
-		pool: nil,
+		pool: pool,
 	}
 }
 
@@ -79,6 +79,7 @@ func (s *Storage) UpdateEvent(ctx context.Context, id uuid.UUID, event model.Eve
 		Set("title", event.Title).
 		Set("start_time", event.StartTime).
 		Set("description", event.Description).
+		Set("duration", event.Duration).
 		Where(sq.Eq{"id": id})
 
 	query, args, err := builderUpdate.ToSql()
@@ -118,7 +119,7 @@ func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]
 	startDate := date.Format(time.DateOnly)                     // Приводим к формату даты
 	endDate := date.AddDate(0, 0, offset).Format(time.DateOnly) // Конечная дата
 
-	builderSelect := sq.Select("id", "title", "start_time", "description").
+	builderSelect := sq.Select("id", "title", "start_time", "description", "duration", "notify_before", "user_id").
 		From("event").
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Expr("start_time BETWEEN ? AND ?", startDate+" 00:00:00", endDate+" 23:59:59"))
@@ -135,7 +136,8 @@ func (s *Storage) GetEvents(ctx context.Context, date time.Time, offset int) ([]
 	var events []model.Event
 	for rows.Next() {
 		var event model.Event
-		if err := rows.Scan(&event.ID, &event.Title, &event.StartTime, &event.Description); err != nil {
+		if err := rows.Scan(&event.ID, &event.Title, &event.StartTime, &event.Description,
+			&event.Duration, &event.NotifyBefore, &event.UserID); err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
 		events = append(events, event)
