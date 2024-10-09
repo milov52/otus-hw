@@ -18,18 +18,12 @@ COPY . ${CODE_DIR}
 ARG LDFLAGS
 RUN CGO_ENABLED=0 go build \
         -ldflags "$LDFLAGS" \
-        -o ${BIN_FILE} cmd/calendar/*
+        -o ${BIN_FILE} cmd/calendar/main.go
 
 # На выходе тонкий образ
 FROM alpine:3.9
 
-LABEL ORGANIZATION="OTUS Online Education"
-LABEL SERVICE="calendar"
-LABEL MAINTAINERS="student@otus.ru"
-
-ENV BIN_FILE "/opt/calendar/calendar-app"
-#ENV CONFIG_FILE "/opt/calendar/calendar-app"
-
+ENV BIN_FILE /opt/calendar/calendar-app
 COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
 ENV CONFIG_FILE /etc/calendar/calendar_config.yaml

@@ -8,9 +8,12 @@ networks:
 
 services:
   calendar_app:
-    build: cmd/calendar
+    build:
+      context: .
+      dockerfile: cmd/calendar/Dockerfile
     depends_on:
-      - migrator
+      - pg
+    restart: on-failure
     ports:
       - "8888:8080"
     expose:
@@ -19,7 +22,9 @@ services:
       - db
 
   sender:
-    build: cmd/calendar_sender
+    build:
+      context: .
+      dockerfile: cmd/calendar_sender/Dockerfile
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -28,7 +33,9 @@ services:
       - rabbit
 
   scheduler:
-    build: cmd/calendar_sheduler
+    build:
+      context: .
+      dockerfile: cmd/calendar_sheduler/Dockerfile
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -36,25 +43,18 @@ services:
       - db
       - rabbit
 
-  migrator:
-    build: migrations
-    depends_on:
-      - pg
-    restart: on-failure
-    networks:
-      - db
-
   pg:
     restart: always
     image: postgres:latest
     environment:
-      - "POSTGRES_DB=${PG_DATABASE_NAME}"
-      - "POSTGRES_USER=${PG_USER}"
-      - "POSTGRES_PASSWORD=${PG_PASSWORD}"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: calendar
     ports:
       - "5435:5432"
     volumes:
       - ./internal/pg/data:/var/lib/postgresql/data
+      - ./scripts/setup.sql:/docker-entrypoint-initdb.d/setup.sql
     networks:
       - db
 
