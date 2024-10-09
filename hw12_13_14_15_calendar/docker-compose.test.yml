@@ -1,0 +1,28 @@
+version: "3"
+
+networks:
+  db:
+    driver: bridge
+
+services:
+  integration_tests:
+    build:
+      context: .
+      dockerfile: tests/Dockerfile
+    depends_on:
+      - pg
+    networks:
+      - db
+
+  pg:
+    image: postgres:11.1
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: calendar
+    volumes:
+      - ./scripts/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    networks:
+      - db
