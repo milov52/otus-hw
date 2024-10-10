@@ -123,3 +123,25 @@ migrate:
 
 migrate-down:
 	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} down -v
+
+up:
+	docker-compose up -d --build
+
+down:
+	docker-compose down
+
+restart: down up
+
+integration-tests:
+	set -e ;\
+	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit;\
+	docker-compose -f docker-compose.test.yml run integration_tests go test -tags=integration ./... ;\
+	docker-compose -f docker-compose.test.yml down
+
+test-cleanup:
+	docker-compose -f docker-compose.test.yml down \
+        --rmi local \
+		--volumes \
+		--remove-orphans \
+		--timeout 60; \
+  	docker-compose rm -f

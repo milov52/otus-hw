@@ -34,12 +34,8 @@ const (
 var configFile string
 
 func main() {
-	flag.Parse()
 	flag.StringVar(&configFile, "config", "configs/calendar_config.yaml", "Path to configuration file")
-	if flag.Arg(0) == "version" {
-		printVersion()
-		return
-	}
+	flag.Parse()
 
 	cfg := config.MustLoad(configFile)
 	logg := logger.SetupLogger(cfg.Env)
@@ -50,7 +46,7 @@ func main() {
 	case inMemory:
 		storage = memorystorage.New()
 	case sql:
-		sqlStorage := sqlstorage.New()
+		sqlStorage := sqlstorage.New(nil)
 		// Подключаемся к базе данных
 		ctx := context.Background()
 		if err := sqlStorage.Connect(ctx, *cfg); err != nil {
