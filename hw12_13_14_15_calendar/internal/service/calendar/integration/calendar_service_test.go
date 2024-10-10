@@ -34,7 +34,7 @@ func TestServiceIntegrationSuite(t *testing.T) {
 }
 
 func (s *CalendarServiceSuite) SetupSuite() {
-	pool, err := pgxpool.Connect(context.Background(), "postgres://test:test@localhost:5435/calendar")
+	pool, err := pgxpool.Connect(context.Background(), "postgres://test:test@pg:5432/calendar")
 	s.Require().NoError(err)
 
 	repo := sqlstorage.New(pool)
