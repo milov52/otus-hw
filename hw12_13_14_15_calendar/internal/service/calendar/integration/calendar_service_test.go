@@ -43,7 +43,11 @@ func (s *CalendarServiceSuite) SetupSuite() {
 	)
 	s.svc = calendar.NewEventService(*logger, repo)
 	s.pool = pool
+}
 
+func (s *CalendarServiceSuite) SetupTest() {
+	_, err := s.pool.Exec(context.Background(), "TRUNCATE TABLE event")
+	s.Require().NoError(err)
 }
 
 func (s *CalendarServiceSuite) TearDownSuite() {
@@ -107,7 +111,6 @@ func (s *CalendarServiceSuite) TestDayEventList() {
 	dayEvents, err := s.svc.DayEventList(context.Background(), time.Now())
 	s.Require().NoError(err)
 	s.Require().Equal(2, len(dayEvents))
-
 }
 
 func (s *CalendarServiceSuite) TestWeekEventList() {
@@ -139,7 +142,6 @@ func (s *CalendarServiceSuite) TestWeekEventList() {
 	dayEvents, err := s.svc.WeekEventList(context.Background(), time.Now())
 	s.Require().NoError(err)
 	s.Require().Equal(3, len(dayEvents))
-
 }
 
 func (s *CalendarServiceSuite) TestMonthEventList() {
@@ -171,7 +173,6 @@ func (s *CalendarServiceSuite) TestMonthEventList() {
 	dayEvents, err := s.svc.MonthEventList(context.Background(), time.Now())
 	s.Require().NoError(err)
 	s.Require().Equal(3, len(dayEvents))
-
 }
 
 func (s *CalendarServiceSuite) getDirectItem(title string) model.Event {

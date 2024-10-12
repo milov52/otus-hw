@@ -39,6 +39,7 @@ func (s *IntegrationSuite) SetupSuite() {
 		log.Fatal(err)
 	}
 	s.pool = pool
+	s.r = sqlstorage.New(s.pool)
 }
 
 func (s *IntegrationSuite) TearDownSuite() {
@@ -46,7 +47,8 @@ func (s *IntegrationSuite) TearDownSuite() {
 }
 
 func (s *IntegrationSuite) SetupTest() {
-	s.r = sqlstorage.New(s.pool)
+	_, err := s.pool.Exec(context.Background(), "TRUNCATE TABLE event")
+	s.Require().NoError(err)
 }
 
 func (s *IntegrationSuite) TestCreateEvent() {
