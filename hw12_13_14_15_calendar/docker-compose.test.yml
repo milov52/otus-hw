@@ -26,3 +26,19 @@ services:
       - ./scripts/setup.sql:/docker-entrypoint-initdb.d/setup.sql
     networks:
       - db
+
+  rabbitmq:
+    image: rabbitmq:3.13.3-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15675:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 15s
+      timeout: 15s
+      retries: 10
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+    networks:
+      - db

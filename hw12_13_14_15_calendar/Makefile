@@ -134,7 +134,7 @@ restart: down up
 
 integration-tests:
 	set -e ;\
-	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit;\
+	docker-compose -f docker-compose.test.yml up --build  --force-recreate  --abort-on-container-exit;\
 	docker-compose -f docker-compose.test.yml run integration_tests go test -tags=integration ./... ;\
 	docker-compose -f docker-compose.test.yml down
 
