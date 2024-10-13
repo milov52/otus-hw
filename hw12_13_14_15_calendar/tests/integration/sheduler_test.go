@@ -68,7 +68,7 @@ func (s *ShedulerSuite) TestSendMessage() {
 	)
 	s.Require().NoError(err)
 	for msg := range messages {
-		//fmt.Printf("Received message: %s\n", string(msg.Body))
+		fmt.Printf("Received message: %s\n", string(msg.Body))
 		s.Require().NotEmpty(msg)
 		break // Читаем одно сообщение и выходим
 	}

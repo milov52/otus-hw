@@ -104,9 +104,9 @@ func (s *CalendarServiceSuite) TestDayEventList() {
 		Duration:  time.Hour,
 		UserID:    "user1",
 	}
-	_ = s.createDirectItem(m1)
-	_ = s.createDirectItem(m2)
-	_ = s.createDirectItem(m3)
+	s.createDirectItem(m1)
+	s.createDirectItem(m2)
+	s.createDirectItem(m3)
 
 	dayEvents, err := s.svc.DayEventList(context.Background(), time.Now())
 	s.Require().NoError(err)
@@ -135,9 +135,9 @@ func (s *CalendarServiceSuite) TestWeekEventList() {
 		Duration:  time.Hour,
 		UserID:    "user1",
 	}
-	_ = s.createDirectItem(m1)
-	_ = s.createDirectItem(m2)
-	_ = s.createDirectItem(m3)
+	s.createDirectItem(m1)
+	s.createDirectItem(m2)
+	s.createDirectItem(m3)
 
 	dayEvents, err := s.svc.WeekEventList(context.Background(), time.Now())
 	s.Require().NoError(err)
@@ -166,9 +166,9 @@ func (s *CalendarServiceSuite) TestMonthEventList() {
 		Duration:  time.Hour,
 		UserID:    "user1",
 	}
-	_ = s.createDirectItem(m1)
-	_ = s.createDirectItem(m2)
-	_ = s.createDirectItem(m3)
+	s.createDirectItem(m1)
+	s.createDirectItem(m2)
+	s.createDirectItem(m3)
 
 	dayEvents, err := s.svc.MonthEventList(context.Background(), time.Now())
 	s.Require().NoError(err)
@@ -182,7 +182,6 @@ func (s *CalendarServiceSuite) getDirectItem(title string) model.Event {
 		PlaceholderFormat(sq.Dollar).
 		Where(sq.Eq{"title": title}).
 		ToSql()
-
 	if err != nil {
 		s.Fail(err.Error())
 	}
@@ -204,7 +203,7 @@ func (s *CalendarServiceSuite) getDirectItem(title string) model.Event {
 	return item
 }
 
-func (s *CalendarServiceSuite) createDirectItem(event model.Event) uuid.UUID {
+func (s *CalendarServiceSuite) createDirectItem(event model.Event) {
 	query, args, err := sq.
 		Insert("event").
 		PlaceholderFormat(sq.Dollar).
@@ -213,7 +212,6 @@ func (s *CalendarServiceSuite) createDirectItem(event model.Event) uuid.UUID {
 			event.Duration, event.NotifyBefore, event.UserID).
 		Suffix("RETURNING id").
 		ToSql()
-
 	if err != nil {
 		s.Fail(err.Error())
 	}
@@ -223,6 +221,4 @@ func (s *CalendarServiceSuite) createDirectItem(event model.Event) uuid.UUID {
 	if err != nil {
 		s.Fail(err.Error())
 	}
-
-	return eventID
 }
