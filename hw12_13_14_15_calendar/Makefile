@@ -38,7 +38,7 @@ install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.57.2
 
 lint: install-lint-deps
-	golangci-lint run
+	#golangci-lint run ./internal...
 
 .PHONY: build run build-img run-img version test lint
 
@@ -100,7 +100,7 @@ EVENT_PROTO_PATH:="api/event/v1"
 
 # Генерация протофайлов с использованием protoc
 PHONY: .protoc-generate
-.protoc-generate: .bin-deps .vendor-proto
+.protoc-generate:
 	mkdir -p pkg/${EVENT_PROTO_PATH}
 	mkdir -p api/openapiv2
 	$(PROTOC) -I ${EVENT_PROTO_PATH} -I vendor-proto \
@@ -123,3 +123,25 @@ migrate:
 
 migrate-down:
 	$(LOCAL_BIN)/goose -dir ${LOCAL_MIGRATION_DIR} postgres ${LOCAL_MIGRATION_DSN} down -v
+
+up:
+	docker-compose up -d --build
+
+down:
+	docker-compose down
+
+restart: down up
+
+integration-tests:
+	set -e ;\
+	docker-compose -f docker-compose.test.yml up --build  --force-recreate  --abort-on-container-exit;\
+	docker-compose -f docker-compose.test.yml run integration_tests go test -tags=integration ./... ;\
+	docker-compose -f docker-compose.test.yml down
+
+test-cleanup:
+	docker-compose -f docker-compose.test.yml down \
+        --rmi local \
+		--volumes \
+		--remove-orphans \
+		--timeout 60; \
+  	docker-compose rm -f

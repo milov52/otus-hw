@@ -38,7 +38,7 @@ func run() int {
 	case inMemory:
 		storage = memorystorage.New()
 	case sql:
-		sqlStorage := sqlstorage.New()
+		sqlStorage := sqlstorage.New(nil)
 		ctx := context.Background()
 
 		if err := sqlStorage.Connect(ctx, *cfg); err != nil {

@@ -1,15 +1,15 @@
 env: "local" # local, dev, prod
 default_storage: "sql"
 database:
-  host: "localhost"
-  port: 54321
-  username: "calendar-user"
-  password: "calendar-password"
+  host: "pg"
+  port: 5432
+  username: "postgres"
+  password: "postgres"
   dbname: "calendar"
 
 http_server:
-  host: "localhost"
-  port: "8081"
+  host: "0.0.0.0"
+  port: "8080"
   timeout: 4s
   idle_timeout: 60s
 
@@ -18,7 +18,7 @@ grpc_server:
   port: "50051"
 
 rabbitmq:
-  host: "localhost"
+  host: "rabbitmq"
   port: "5672"
   username: "guest"
   password: "guest"
