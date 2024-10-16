@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-calendar
+spec:
+  replicas: {{ .Values.calendar.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-calendar
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-calendar
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.calendar.image }}
+          ports:
+            - containerPort: 8080

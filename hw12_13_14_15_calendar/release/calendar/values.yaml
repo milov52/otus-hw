@@ -1,0 +1,35 @@
+# Параметры PostgreSQL
+postgresql:
+  replicaCount: 1
+  database: mydb
+  username: user
+  password: password
+
+# Параметры RabbitMQ
+rabbitmq:
+  replicaCount: 1
+  username: rabbitmq-user
+  password: rabbitmq-pass
+  port: 5672
+  webport: 15672
+
+# Параметры calendar
+calendar:
+  replicaCount: 1
+  image: "milov52/calendar:latest"
+
+# Параметры calendar_sender
+sender:
+  replicaCount: 1
+  image: "milov52/calendar_sender:latest"
+
+# Параметры calendar_scheduler
+scheduler:
+  replicaCount: 1
+  image: "milov52/calendar_scheduler:latest"
+
+ingress:
+  enabled: true
+  hosts: "ognidoma.ru"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /

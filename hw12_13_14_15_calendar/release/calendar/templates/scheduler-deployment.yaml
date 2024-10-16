@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-scheduler
+spec:
+  replicas: {{ .Values.scheduler.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-scheduler
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-scheduler
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.scheduler.image }}

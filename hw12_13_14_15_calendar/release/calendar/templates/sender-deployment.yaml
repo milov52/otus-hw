@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-sender
+spec:
+  replicas: {{ .Values.sender.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-sender
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-sender
+    spec:
+      containers:
+        - name: app
+          image: {{ .Values.sender.image }}
